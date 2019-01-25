@@ -34,3 +34,25 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+
+### Basics
+\#*#
+*~
+.#*
+
+### Python
+*.pyc
+*.pyo
+
+### C extensions
+*.so
+
+### Cluster logs
+*.log
+
+### Jupyter
+.ipynb_checkpoints
+
+*/metastore_db/
+metastore_db
