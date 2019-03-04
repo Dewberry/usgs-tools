@@ -1,5 +1,6 @@
 from osgeo import gdal, ogr, osr
 import pandas as pd
+import numpy as np
 import geopandas as gpd
 from shapely.geometry import Point
 
@@ -28,6 +29,13 @@ class StreamGrid(object):
         proj=self.crs=osr.SpatialReference(wkt=self.data.GetProjection()) 
         crs=proj.GetAttrValue('AUTHORITY',1) #Extract the projection
         return crs
+
+    def cell_size(self):
+        """ Return the cell height/width
+        """
+        _,pixelwidth,_,_,_,pixelheight=self.data.GetGeoTransform()
+        assert pixelwidth==-pixelheight, "Expecting pixel height and width to be equal"
+        return pixelwidth        
 
 def coord2index(sg, lat, lon):
     """ A function to transform the provided latitude and longitude value of a 
@@ -114,3 +122,11 @@ def geodataframe(longitude, latitude, epsg):
     coord_df['Coordinates'] = coord_df['Coordinates'].apply(Point)
     gdf = gpd.GeoDataFrame(coord_df, crs={'init': 'epsg:%s' %epsg}, geometry='Coordinates')
     return gdf     
+
+def TrueDistance(cell1, cell2, cellsize):
+    """ Function to calculate the true distance between individual cells
+    """
+    row=cell1[0]-cell2[0]
+    col=cell1[1]-cell2[1]
+    dis=np.sqrt(row**2+col**2)*cellsize
+    return dis    
