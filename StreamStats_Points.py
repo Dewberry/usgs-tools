@@ -114,14 +114,16 @@ def index2coord(sg, confl):
         latitude.append((transform[3]-(confl[i][1]*-transform[5]))+transform[5]/2.)
     return longitude, latitude
 
-def geodataframe(longitude, latitude, epsg):
+def geodataframe(longitude, latitude, epsg, distance=[]):
     """
     """
     coord_df=pd.DataFrame(data={'Lon':longitude,'Lat':latitude})
     coord_df['Coordinates'] = list(zip(coord_df.Lon, coord_df.Lat))
     coord_df['Coordinates'] = coord_df['Coordinates'].apply(Point)
-    gdf = gpd.GeoDataFrame(coord_df, crs={'init': 'epsg:%s' %epsg}, geometry='Coordinates')
-    return gdf     
+    if len(distance)>0:
+        coord_df['Distance'] = distance
+    gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
+    return gdf   
 
 def TrueDistance(cell1, cell2, cellsize):
     """ Function to calculate the true distance between individual cells
