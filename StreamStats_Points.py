@@ -47,61 +47,6 @@ def coord2index(sg, lat, lon):
     pix_y = int((transform[3] - lat ) / -transform[5]) #Column value
     return pix_x, pix_y
 
-def MoveUpstream(df, stream_cell, nogo):
-    """This function searches the 8 cells surrounding it to determine the location of the next stream cell(s).
-        Arguments: df=the dataframe containing the stream raster data, stream_cell=the current stream cell that will be used to search for the next stream cell,
-        nogo=list of stream cells that do not want to return as a new stream cell
-    """
-    row=stream_cell[0] #Extract the raster row 
-    col=stream_cell[1] #Extract the raster column
-    
-    cell_value= df[row][col] #Determine the value of the cell
-    assert cell_value == 1 #The value of the cell must be equal to the value associated with a stream cell
-    
-    nogo.append((row,col))   
-
-    stream_cell=[]
-    
-    for i in range(-1,2): #For -1, 0, 1 in the vertical direction (move up and down rows)
-        for j in range(-1,2): #For -1, 0, 1 in the horizontal direction (move across columns)
-            value = df[row + i][col+j] #Read value of raster cell
-            if value == 0: # if value is zero, no stream in this cell
-                continue #loop back
-            elif value==1 and (row+i,col+j) not in nogo: # if value is 1 and the cell is not in the nogo list, then...
-                stream_cell.append((row + i,col+j)) #Add the new cell or cells to the stream_cell list
-    return stream_cell, nogo    
-
-def FindConfluence(df, stream_cell, nogo): #Keep moving upstream until you find a confluence--problem: might hit a dead end, maybe add an else if it is the end?
-    """Function which repeates the MoveUpstream function until it finds two or more stream cells surrounding the provided stream_cell, indicating a confluence
-    """
-    while len(stream_cell)==1: #While there is only 1 stream cell returned as we move up stream, keep moving up stream
-        stream_cell, nogo=MoveUpstream(df, stream_cell[0], nogo)
-    if len(stream_cell)>1: #If the number of stream cells 
-        nogo=list(set(nogo+stream_cell))
-    return stream_cell, nogo
-
-def NextConfluence(df, confl, cellnum, nogo):
-    """
-    """
-    stream_cell, nogo=MoveUpstream(df, confl[cellnum[0]]['pts'][cellnum[1]], nogo) #Move up one cell from the confluence
-    if len(stream_cell)==1:
-        stream_cell, nogo=MoveUpstream(df, stream_cell[0], nogo) #And move up one more time 
-        if len(stream_cell)==1:
-            if 'confl' not in confl[cellnum[0]]: #Add the stream_cell that is located three up from the intial split point.
-                confl[cellnum[0]]['confl']=stream_cell  
-            else:
-                confl[cellnum[0]]['confl']=confl[cellnum[0]]['confl']+stream_cell
-            stream_cell, nogo=FindConfluence(df, stream_cell, nogo) #Conf1 is empty if end 
-            if len(stream_cell)>1:
-                confl[max(list(confl.keys()))+1]={'pts':stream_cell, 'npts':len(stream_cell)}
-        elif len(stream_cell)>1:
-            confl[cellnum[0]]['pts']=confl[cellnum[0]]['pts']+stream_cell
-            confl[cellnum[0]]['npts']=len(confl[cellnum[0]]['pts'])
-    elif len(stream_cell)>1:
-        confl[cellnum[0]]['pts']=confl[cellnum[0]]['pts']+stream_cell
-        confl[cellnum[0]]['npts']=len(confl[cellnum[0]]['pts'])
-    return confl, nogo    
-
 def index2coord(sg, confl):
     """
     """
@@ -114,6 +59,14 @@ def index2coord(sg, confl):
         latitude.append((transform[3]-(confl[i][1]*-transform[5]))+transform[5]/2.)
     return longitude, latitude
 
+def TrueDistance(cell1, cell2, cellsize):
+    """ Function to calculate the true distance between individual cells
+    """
+    row=cell1[0]-cell2[0]
+    col=cell1[1]-cell2[1]
+    dis=np.sqrt(row**2+col**2)*cellsize
+    return dis 
+
 def geodataframe(longitude, latitude, epsg, distance=[]):
     """
     """
@@ -125,10 +78,38 @@ def geodataframe(longitude, latitude, epsg, distance=[]):
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
     return gdf   
 
-def TrueDistance(cell1, cell2, cellsize):
-    """ Function to calculate the true distance between individual cells
+def remove_cnum(next_cell):
+    """Function to remove the confluence number from the tuple containing the row/column number of the stream cell
     """
-    row=cell1[0]-cell2[0]
-    col=cell1[1]-cell2[1]
-    dis=np.sqrt(row**2+col**2)*cellsize
-    return dis    
+    next_cellwocnum=[]
+    for cell in next_cell:
+        row=cell[0]
+        col=cell[1]
+        next_cellwocnum.append((row,col))
+    return next_cellwocnum            
+
+def MoveUpstream(df, starting_point, nogo, cnum=None):
+    """This function searches the 8 cells surrounding it to determine the location of the next stream cell(s).
+        Arguments: df=the dataframe containing the stream raster data, stream_cell=the current stream cell that will be used to search for the next stream cell,
+        nogo=list of stream cells that do not want to return as a new stream cell
+    """
+    next_cell=[] #Empty list to store the stream_cells that are returned
+    
+    row=starting_point[0] #Extract the raster row 
+    col=starting_point[1] #Extract the raster column
+    cell_value= df[row][col] #Determine the value of the cell
+    
+    if cnum==None:
+    	cnum=starting_point[2]
+
+    assert df[row][col] == 1, "The provided cell in MoveUpstream is not a stream cell"
+        
+    for i in range(-1,2): #For -1, 0, 1 in the vertical direction (move up and down rows)
+        for j in range(-1,2): #For -1, 0, 1 in the horizontal direction (move across columns)
+            value = df[row + i][col+j] #Read value of raster cell
+            if value == 0: # if value is zero, no stream in this cell
+                continue #loop back
+            elif value==1 and (row+i, col+j) not in nogo: # if value is 1 and the cell is not in the nogo list, then...
+                next_cell.append((row + i, col+j,cnum)) #Add the new cell or cells to the stream_cell list
+                
+    return next_cell, nogo        
