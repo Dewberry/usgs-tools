@@ -90,7 +90,7 @@ def remove_cnum(next_cell):
         next_cellwocnum.append((row,col))
     return next_cellwocnum            
 
-def MoveUpstream(df, starting_point, nogo, cnum=None):
+def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list, cnum=None: int):
     """This function searches the 8 cells surrounding it to determine the location of the next stream cell(s).
         Arguments: df=the dataframe containing the stream raster data, stream_cell=the current stream cell that will be used to search for the next stream cell,
         nogo=list of stream cells that do not want to return as a new stream cell
