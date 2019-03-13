@@ -116,4 +116,39 @@ def MoveUpstream(df, starting_point, nogo, cnum=None):
             elif value==1 and (row+i, col+j) not in nogo: # if value is 1 and the cell is not in the nogo list, then...
                 next_cell.append((row + i, col+j, cnum)) #Add the new cell or cells to the stream_cell list
                 
-    return next_cell        
+    return next_cell
+
+def Remove_False_Confluence(save_confluence: list):
+    """ Function to separate out points that do not have a confluence pair indicating 
+        that they are not a true confluence but just two stream cells next to each other. 
+    """
+    true_confluence=[] #Empty list to store the true confluences, i.e. those that are not just two stream cells next to eachother
+    confl_num=[] #List to store the extracted confluence numbers
+
+    for cell in save_confluence: #For each stream cell, add the confluence number to a list
+        confl_num.append(cell[2])
+
+    for cell in save_confluence: #For each stream cell, if there are two or more stream cells with the same confluence number, i.e it is a confluence, add to the true_confluence list.
+        if confl_num.count(cell[2])>=2:
+            true_confluence.append(cell)
+        
+    false_confluence=list(set(save_confluence)-set(true_confluence)) #List of cells that were identified as confluences but do not have tributaries
+    
+    return true_confluence, false_confluence 
+
+def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
+    """ Function to identify the original two or more stream cells that were falsely identified as being a confluence.
+    """
+    false_cnum=[]
+    false_points=[]
+
+    for cell in false_confluence:
+        false_cnum.append(cell[2])
+
+    for cell in nogo:
+        if cell[2] in false_cnum:
+            false_points.append(cell)
+        
+    false_points=list(set(false_points)-set(false_confluence))
+    
+    return false_points               
