@@ -67,7 +67,7 @@ def TrueDistance(cell1, cell2, cellsize):
     dis=np.sqrt(row**2+col**2)*cellsize
     return dis 
 
-def geodataframe(longitude, latitude, epsg, distance=[]):
+def geodataframe(longitude, latitude, epsg, distance=[], cnum=[]):
     """
     """
     coord_df=pd.DataFrame(data={'Lon':longitude,'Lat':latitude})
@@ -75,6 +75,8 @@ def geodataframe(longitude, latitude, epsg, distance=[]):
     coord_df['Coordinates'] = coord_df['Coordinates'].apply(Point)
     if len(distance)>0:
         coord_df['Distance'] = distance
+    if len(cnum)>0:
+    	coord_df['num'] = cnum
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
     return gdf   
 
@@ -102,6 +104,8 @@ def MoveUpstream(df, starting_point, nogo, cnum=None):
     if cnum==None:
     	cnum=starting_point[2]
 
+    nogo=remove_cnum(nogo)
+
     assert df[row][col] == 1, "The provided cell in MoveUpstream is not a stream cell"
         
     for i in range(-1,2): #For -1, 0, 1 in the vertical direction (move up and down rows)
@@ -110,6 +114,6 @@ def MoveUpstream(df, starting_point, nogo, cnum=None):
             if value == 0: # if value is zero, no stream in this cell
                 continue #loop back
             elif value==1 and (row+i, col+j) not in nogo: # if value is 1 and the cell is not in the nogo list, then...
-                next_cell.append((row + i, col+j,cnum)) #Add the new cell or cells to the stream_cell list
+                next_cell.append((row + i, col+j, cnum)) #Add the new cell or cells to the stream_cell list
                 
-    return next_cell, nogo        
+    return next_cell        
