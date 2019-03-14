@@ -170,8 +170,8 @@ def Remove_False_From_Orig(false_confluence: list, confluence_pairs_orig: list):
             
     return confluence_pairs_orig
 
-def Exclude_Tribs(tributary: list, disexl: float):
-    """ Function to exclude tributaries less than the exclusion length (disexl)
+def Exclude_Confls(tributary: list, disexl: float):
+    """ Function to exclude tributaries or main stem intervals less than the exclusion length (disexl)
     """
     incl_tribs=[]
 
