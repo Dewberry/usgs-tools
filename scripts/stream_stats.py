@@ -22,12 +22,18 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     
     # Make Watershed Call
     watershed_params = {'rcode':rcode, 'xlocation': xlocation,'ylocation':ylocation, 'crs':crs, 'includeparameters':'true', 'includefeatures':'true', 'simplify':'true'}
-    r = requests.get(waterhsed_url, watershed_params)
-    watershed_data = json.loads(r.content.decode())
-
-    while watershed_data['featurecollection'][1]['feature']['features']==[]: #This while statement is used to address the issue where the catchment is not succesfully delineated by StreamStats
+    
+    try:
         r = requests.get(waterhsed_url, watershed_params)
         watershed_data = json.loads(r.content.decode())
+    except:
+        print("Line 28: Expecting value: line 1 column 1 (char 0")
+        count=1
+        while watershed_data['featurecollection'][1]['feature']['features']==[]: #This while statement is used to address the issue where the catchment is not succesfully delineated by StreamStats
+            print("while loop: watershed_data count:", count)
+            r = requests.get(waterhsed_url, watershed_params)
+            watershed_data = json.loads(r.content.decode())
+            count+=1
 
     workspaceID = watershed_data['workspaceID']
     featurecollection = watershed_data['featurecollection']
