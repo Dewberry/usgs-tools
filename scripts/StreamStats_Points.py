@@ -67,16 +67,18 @@ def TrueDistance(cell1, cell2, cellsize):
     dis=np.sqrt(row**2+col**2)*cellsize
     return dis 
 
-def geodataframe(longitude, latitude, epsg, distance=[], cnum=[]):
+def geodataframe(longitude, latitude, epsg, cnum=[], distance=[], type=[]):
     """
     """
     coord_df=pd.DataFrame(data={'Lon':longitude,'Lat':latitude})
     coord_df['Coordinates'] = list(zip(coord_df.Lon, coord_df.Lat))
     coord_df['Coordinates'] = coord_df['Coordinates'].apply(Point)
+    if len(cnum)>0:
+        coord_df['num'] = cnum
     if len(distance)>0:
         coord_df['Distance'] = distance
-    if len(cnum)>0:
-    	coord_df['num'] = cnum
+    if len(type)>0:
+        coord_df['type'] = type        
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
     return gdf   
 
@@ -151,4 +153,30 @@ def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
         
     false_points=list(set(false_points)-set(false_confluence))
     
-    return false_points               
+    return false_points 
+
+
+def Remove_False_From_Orig(false_confluence: list, confluence_pairs_orig: list):
+    """ Function to remove any original confluences that are associated with the false confluences
+    """
+    false_cnum=[]
+
+    for cell in false_confluence:
+        false_cnum.append(cell[2])
+
+    for cell in confluence_pairs_orig:
+        if cell[2] in false_cnum:
+            confluence_pairs_orig.remove(cell)
+            
+    return confluence_pairs_orig
+
+def Exclude_Tribs(tributary: list, disexl: float):
+    """ Function to exclude tributaries less than the exclusion length (disexl)
+    """
+    incl_tribs=[]
+
+    for cell in tributary:
+        if cell[3]>=disexl:
+            incl_tribs.append(cell) 
+
+    return incl_tribs                   

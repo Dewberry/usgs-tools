@@ -10,6 +10,7 @@ def main(pourpoint: tuple, df: pd.DataFrame):
 
 	nogo=[] #Empty list to store the stream cells that we do not want to return to since we have already searched them
 	confluence_pairs=[] #Empty list to store the identified confluence pairs
+	confluence_pairs_orig=[] #Empty list to store the original location of the confluence pairs
 	save_confluence=[] #Empty list to store the location of confluences that are three cells away from the original confluence location
 	cnum=0 #The confluence number or ID
 	count=0 #Counting variable. The number of times we have looped over the while loop below
@@ -30,7 +31,8 @@ def main(pourpoint: tuple, df: pd.DataFrame):
 		else:
 			if len(next_cell)>1:
 				nogo=nogo+next_cell
-				confluence_pairs=confluence_pairs+next_cell
+				confluence_pairs+=next_cell
+				confluence_pairs_orig+=next_cell
 			if len(confluence_pairs)>0:
 				starting_point=confluence_pairs[0]
 				confluence_pairs.remove(starting_point)
@@ -46,15 +48,16 @@ def main(pourpoint: tuple, df: pd.DataFrame):
 						i+=1
 						continue
 					elif len(next_cell)>1:
-						confluence_pairs=confluence_pairs+next_cell
+						confluence_pairs+=next_cell
+						confluence_pairs_orig+=next_cell						
 						i=2
-					else:
+					elif len(next_cell)==0:
 						i=2
 				if len(next_cell) == 1:
 					save_confluence.append(starting_point)
 			else:
 				starting_point=[]
-	return save_confluence, nogo
+	return save_confluence, confluence_pairs_orig, nogo
 
 if __name__== "__main__":
 	main()

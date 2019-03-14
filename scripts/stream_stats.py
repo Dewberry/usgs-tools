@@ -29,7 +29,6 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
         r = requests.get(waterhsed_url, watershed_params)
         watershed_data = json.loads(r.content.decode())
 
-    watershed_data.keys()
     workspaceID = watershed_data['workspaceID']
     featurecollection = watershed_data['featurecollection']
     watershed_poly = featurecollection[1]['feature']
