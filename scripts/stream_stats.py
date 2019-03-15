@@ -26,6 +26,8 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     try:
         r = requests.get(waterhsed_url, watershed_params)
         watershed_data = json.loads(r.content.decode())
+        if watershed_data['featurecollection'][1]['feature']['features']==[]:
+            raise KeyboardInterrupt
     except:
         print("Line 28: Expecting value: line 1 column 1 (char 0")
         count=1

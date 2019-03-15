@@ -160,15 +160,16 @@ def Remove_False_From_Orig(false_confluence: list, confluence_pairs_orig: list):
     """ Function to remove any original confluences that are associated with the false confluences
     """
     false_cnum=[]
+    confluence_pairs=[]
 
     for cell in false_confluence:
         false_cnum.append(cell[2])
 
     for cell in confluence_pairs_orig:
-        if cell[2] in false_cnum:
-            confluence_pairs_orig.remove(cell)
+        if cell[2] not in false_cnum:
+            confluence_pairs.append(cell)
             
-    return confluence_pairs_orig
+    return confluence_pairs
 
 def Exclude_Confls(tributary: list, disexl: float):
     """ Function to exclude tributaries or main stem intervals less than the exclusion length (disexl)
