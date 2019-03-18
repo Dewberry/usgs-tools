@@ -4,6 +4,4 @@
 
 `StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
 
-`USGStools`: All scripts for running the `GageDataRetriever` and `StreamStats` tools.
-
-*Author*: sputnam@Dewberry.com
+`USGStools`: Source codes and functions called by notebooks. 

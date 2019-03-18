@@ -38,5 +38,3 @@ Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas
 1. Open `StreamStats_API_Scraper_Auto.ipynb`and specify the state abbreviation for the state where the catchment is located and the path of the shapefile containing the latitude and longitude of points on the stream grid from the previous notebook.
  
 2. Run all cells in the notebook. The results are saved as a GeoJSON and a CSV file in the results folder within the directory containing this notebook. The GeoJSON file can be opened in [QGIS](https://qgis.org/en/site/forusers/download.html) to examine the catchments that were delineated by the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects) while the CSV file contains a summary of the flow frequency data for all of the stream points. 
-
-*Author*: sputnam@Dewberry.com

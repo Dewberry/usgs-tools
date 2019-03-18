@@ -180,55 +180,6 @@ def snappoint_analysis(geom, rcode, status=True):
     return ffdata, polyg 
 
 
-def snappoint_analysis2(geom, rcode, status=True): 
-    """ A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
-    Arguments: geom is the shapley points from the shapefile containing the outlet locations, rcode is the state abbreviation, status indiates if we want to display the print statements
-    """
-    crs=4326  #Spatial reference
-    stats_group=2 #Peak-annual flows
-    configs=2 #?
-    ffdata={} #Dictionary to store the outlet flow frequency data dictionaries
-    polyg={} #Dictionary to store the catchment polygons
-    failID=[] #List to store outlet locations whose flow frequency/catchment polygons were not calculated
-    disp=True #Set display to True so that the print statements from SS_scrap are shown.
-    if not status: #If status is set to False by the user, then do not print the statements from SS_scrape
-        disp=False
-    for i, xy in enumerate(geom): #For gdf.geometry:
-        try:
-            lon, lat = xy.x, xy.y #Longitude and latitude for each shapely point  
-            xlocation= lon #Xlocation to pass (longitude)
-            ylocation=  lat #ylocation to pass (latitute)
-            if status: #If status is True, then print the lat, lon
-                print(lon, lat)
-            polyg[i], ff_json  = SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=disp) #Run the SS_scrape function
-            ffdata[i]= get_peaks(ff_json) #Use the function above to extract the json data
-        except: #If the ss_scrape API scraper tool fails, then add the index from the gdf.geometry dataframe to the list of the failIDs
-            failID.append(i)
-            if status: #If the status is true then print the note that we are unable to get the peaks for this point
-                print(f'Unable to get Peaks for {xy}')
-    return ffdata, polyg, failID 
-
-
-def  rerun_snappoint_analysis(geom, rcode, pp_fail, pp_dic, watershed_poly_dic, status=True): 
-    """ A function that reruns the snappoint_analysis function for the outlet locations that failed the first time.
-    Arguments: geom is the shapley points from the shapefile containing the outlet locations to rerun, rcode is the state abbreviation, pp_fail are a list of outlet locations that were not calculated, pp_dic/watershed_poly_dic are the outputs of the snapoint_analysis function, status indiates if we want to display the print statements
-    """
-    ffdata={} #Dictionary to store the outlet flow frequency data dictionaries
-    polyg={} #Dictionary to store the catchment polygons
-    failID=[] #List to store outlet locations whose flow frequency/catchment polygons were not calculated
-    pp_fail2=[] #List to store the original index of outlets that failed
-    disp=True #Set display to True so that the print statements from SS_scrap are shown.
-    if not status: #If status is set to False by the user, then do not print the statements from SS_scrape
-        disp=False
-    ffdata, polyg, failID=snappoint_analysis(geom, rcode, status=disp) #Run the snappoint_analysis function
-    for i in np.arange(len(failID)): #Add the names of the outlets that failed to be calculated the second time around
-        pp_fail2.append(pp_fail[failID[i]])     
-    for i in list(ffdata.keys()): #Add the results of the re-run to the original dictionarys containing the..
-        pp_dic[pp_fail[i]]=ffdata[i] #Flow frequency data
-        watershed_poly_dic[pp_fail[i]]=polyg[i] #Catchment boundaries
-    return pp_dic, watershed_poly_dic, pp_fail2    
-
-
 def ff_summary(pp_dic):
     """A function to extract the flow frequency data for each outlet within the pp_dic dictionary and create a summary dataframe
     Arguments: pp_dic is a dictionary containing the flow frequency data for each outlet location
