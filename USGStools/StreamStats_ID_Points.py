@@ -4,9 +4,9 @@ import numpy as np
 import geopandas as gpd
 from shapely.geometry import Point
 
-"""
-"""
 
+"""
+"""
 
 class StreamGrid(object):
     ''' StreamGrid class designed to read in stream grids and create a dataframe.
@@ -37,6 +37,7 @@ class StreamGrid(object):
         assert pixelwidth==-pixelheight, "Expecting pixel height and width to be equal"
         return pixelwidth        
 
+
 def coord2index(sg, lat, lon):
     """ A function to transform the provided latitude and longitude value of a 
         point on the stream grid into the index (row/column) values for the stream
@@ -46,6 +47,7 @@ def coord2index(sg, lat, lon):
     pix_x = int((lon - transform[0]) / transform[1]) #Row value
     pix_y = int((transform[3] - lat ) / -transform[5]) #Column value
     return pix_x, pix_y
+
 
 def index2coord(sg, confl):
     """
@@ -59,6 +61,7 @@ def index2coord(sg, confl):
         latitude.append((transform[3]-(confl[i][1]*-transform[5]))+transform[5]/2.)
     return longitude, latitude
 
+
 def TrueDistance(cell1, cell2, cellsize):
     """ Function to calculate the true distance between individual cells
     """
@@ -66,6 +69,7 @@ def TrueDistance(cell1, cell2, cellsize):
     col=cell1[1]-cell2[1]
     dis=np.sqrt(row**2+col**2)*cellsize
     return dis 
+
 
 def geodataframe(longitude, latitude, epsg, cnum=[], distance=[], type=[]):
     """
@@ -80,7 +84,10 @@ def geodataframe(longitude, latitude, epsg, cnum=[], distance=[], type=[]):
     if len(type)>0:
         coord_df['type'] = type        
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
+    gdf=gdf.sort_values(by=['num']) 
+    gdf['num']=np.arange(0, len(gdf))
     return gdf   
+
 
 def remove_cnum(next_cell):
     """Function to remove the confluence number from the tuple containing the row/column number of the stream cell
@@ -91,6 +98,7 @@ def remove_cnum(next_cell):
         col=cell[1]
         next_cellwocnum.append((row,col))
     return next_cellwocnum            
+
 
 def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list, cnum: int=None):
     """This function searches the 8 cells surrounding it to determine the location of the next stream cell(s).
@@ -104,7 +112,7 @@ def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list, cnum: int=
     cell_value= df[row][col] #Determine the value of the cell
     
     if cnum==None:
-    	cnum=starting_point[2]
+        cnum=starting_point[2]
 
     nogo=remove_cnum(nogo)
 
@@ -119,6 +127,7 @@ def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list, cnum: int=
                 next_cell.append((row + i, col+j, cnum)) #Add the new cell or cells to the stream_cell list
                 
     return next_cell
+
 
 def Remove_False_Confluence(save_confluence: list):
     """ Function to separate out points that do not have a confluence pair indicating 
@@ -138,8 +147,9 @@ def Remove_False_Confluence(save_confluence: list):
     
     return true_confluence, false_confluence 
 
+
 def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
-    """ Function to identify the original two or more stream cells that were falsely identified as being a confluence.
+    """ Function to identify all the cells in nogo associated with the false conflunces
     """
     false_cnum=[]
     false_points=[]
@@ -170,6 +180,7 @@ def Remove_False_From_Orig(false_confluence: list, confluence_pairs_orig: list):
             confluence_pairs.append(cell)
             
     return confluence_pairs
+
 
 def Exclude_Confls(tributary: list, disexl: float):
     """ Function to exclude tributaries or main stem intervals less than the exclusion length (disexl)

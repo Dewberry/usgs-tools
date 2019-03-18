@@ -1,7 +1,5 @@
-import sys
 import pandas as pd
-sys.path.append('scripts')
-from StreamStats_Points import*
+from StreamStats_ID_Points import*
 
 
 def main(df: pd.DataFrame, cellsize: int, true_confluence: list, false_points: list, confluence_pairs_orig: list):

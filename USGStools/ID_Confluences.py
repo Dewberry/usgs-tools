@@ -1,7 +1,5 @@
-import sys
 import pandas as pd
-sys.path.append('scripts')
-from StreamStats_Points import*
+from StreamStats_ID_Points import*
 
 
 def main(pourpoint: tuple, df: pd.DataFrame):

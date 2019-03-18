@@ -1,5 +1,5 @@
-/results
-/data
+StreamStats/results
+StreamStats/data
 
 # History files
 .Rhistory

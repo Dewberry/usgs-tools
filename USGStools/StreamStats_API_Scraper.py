@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 
+
 """
 """
 
@@ -11,6 +12,8 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     """
     A function that extracts the catchment boundary and flow frequency data for a specified xy location using the USGS StreamStats web application.
     """
+    assert rcode=='MD' or rcode=='NY', "This tool is not been tested for this state and will fail"
+
     waterhsed_url = 'https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?'
     PercentOverlay_url = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/nss/regions/MapServer/exts/PercentOverlayRESTSOE/PercentOverlay'
     stats_groups_url= f"https://streamstats.usgs.gov/nssservices/statisticgroups/{stats_group}.json?"
@@ -18,7 +21,6 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     parameters_url = r'https://streamstats.usgs.gov/streamstatsservices/parameters.json?'
     estimate_url = 'https://streamstats.usgs.gov/nssservices/scenarios/estimate.json?'
     Href_url = f"https://streamstats.usgs.gov/nssservices/statisticgroups/{stats_group}"
-    
     
     # Make Watershed Call
     watershed_params = {'rcode':rcode, 'xlocation': xlocation,'ylocation':ylocation, 'crs':crs, 'includeparameters':'true', 'includefeatures':'true', 'simplify':'true'}
@@ -40,7 +42,6 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     workspaceID = watershed_data['workspaceID']
     featurecollection = watershed_data['featurecollection']
     watershed_poly = featurecollection[1]['feature']
-
     
     # Make Percent Overlay Call
     PercentOverlay_params = {'geometry': json.dumps(watershed_poly), 'f': 'json'}
@@ -49,8 +50,12 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     regressionregion_codes = []
     for group in PercentOverlay:
         group_name = group['name']
-        if 'Peak' in group_name and 'Urban' not in group_name:
-            regressionregion_codes.append(group['code'])
+        if rcode=='MD':
+            if 'Peak' in group_name and 'Urban' not in group_name:
+                regressionregion_codes.append(group['code'])
+        elif rcode=='NY': 
+            if '2006_Full_Region' in group_name: #This has only been tested for region 1 in NY and may need to be adjusted for other regions
+                regressionregion_codes.append(group['code'])
 
     reg_codes = ','.join(regressionregion_codes)
     rr_weight={}
@@ -140,8 +145,7 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
 
   
 def get_peaks(ff_json): 
-    ''' 
-    A function which extracts the flow frequency data from the StreamStats flow frequency json file. 
+    '''  A function which extracts the flow frequency data from the StreamStats flow frequency json file. 
     Arguments: ff_json is a json file containing the flow frequency data for a catchment outlet
     '''  
     ffdata = {} ##Dictionary to store the outlet flow frequency data dictionaries
@@ -151,9 +155,9 @@ def get_peaks(ff_json):
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
     return ffdata
 
+
 def snappoint_analysis(geom, rcode, status=True): 
-    """ 
-    A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
+    """ A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
     Arguments: geom is the shapley points from the shapefile containing the outlet locations, rcode is the state abbreviation, status indiates if we want to display the print statements
     """
     crs=4326  #Spatial reference
@@ -177,8 +181,7 @@ def snappoint_analysis(geom, rcode, status=True):
 
 
 def snappoint_analysis2(geom, rcode, status=True): 
-    """ 
-    A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
+    """ A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
     Arguments: geom is the shapley points from the shapefile containing the outlet locations, rcode is the state abbreviation, status indiates if we want to display the print statements
     """
     crs=4326  #Spatial reference
@@ -207,8 +210,7 @@ def snappoint_analysis2(geom, rcode, status=True):
 
 
 def  rerun_snappoint_analysis(geom, rcode, pp_fail, pp_dic, watershed_poly_dic, status=True): 
-    """ 
-    A function that reruns the snappoint_analysis function for the outlet locations that failed the first time.
+    """ A function that reruns the snappoint_analysis function for the outlet locations that failed the first time.
     Arguments: geom is the shapley points from the shapefile containing the outlet locations to rerun, rcode is the state abbreviation, pp_fail are a list of outlet locations that were not calculated, pp_dic/watershed_poly_dic are the outputs of the snapoint_analysis function, status indiates if we want to display the print statements
     """
     ffdata={} #Dictionary to store the outlet flow frequency data dictionaries
@@ -228,8 +230,7 @@ def  rerun_snappoint_analysis(geom, rcode, pp_fail, pp_dic, watershed_poly_dic, 
 
 
 def ff_summary(pp_dic):
-    """
-    A function to extract the flow frequency data for each outlet within the pp_dic dictionary and create a summary dataframe
+    """A function to extract the flow frequency data for each outlet within the pp_dic dictionary and create a summary dataframe
     Arguments: pp_dic is a dictionary containing the flow frequency data for each outlet location
     """
     OutID=list(pp_dic.keys()) #The outlet IDs
