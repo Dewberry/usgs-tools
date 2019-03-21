@@ -12,7 +12,7 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
     """
     A function that extracts the catchment boundary and flow frequency data for a specified xy location using the USGS StreamStats web application.
     """
-    assert rcode=='MD' or rcode=='NY', "This tool is not been tested for this state and will fail"
+    assert rcode=='MD' or rcode=='NY' or 'WI', "This tool is not been tested for this state and will fail"
 
     waterhsed_url = 'https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?'
     PercentOverlay_url = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/nss/regions/MapServer/exts/PercentOverlayRESTSOE/PercentOverlay'
@@ -56,7 +56,8 @@ def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=Tru
         elif rcode=='NY': 
             if '2006_Full_Region' in group_name: #This has only been tested for region 1 in NY and may need to be adjusted for other regions
                 regressionregion_codes.append(group['code'])
-
+        elif rcode=='WI':
+        	continue #Flow frequency data is not currently available for Wisconsin so continue to delineating
     reg_codes = ','.join(regressionregion_codes)
     rr_weight={}
     for rr in  PercentOverlay:
@@ -176,7 +177,9 @@ def snappoint_analysis(geom, rcode, status=True):
         if status: #If status is True, then print the lat, lon
             print(lon, lat)
         polyg[i], ff_json  = SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=disp) #Run the SS_scrape function
-        ffdata[i]= get_peaks(ff_json) #Use the function above to extract the json data
+        if rcode!='WI':
+        	ffdata[i]= get_peaks(ff_json) #Use the function above to extract the json data
+
     return ffdata, polyg 
 
 
@@ -190,4 +193,5 @@ def ff_summary(pp_dic):
     for i in OutID: #Add in the flow frequency data for each catchment outlet
         ffdata[i]=list(pp_dic[i].values()) 
     ffdata = ffdata.reindex(sorted(ffdata.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
+    print(ffdata.head())
     return ffdata    
