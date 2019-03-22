@@ -1,6 +1,8 @@
-import json
-import requests
+import os
 import sys
+import json
+import glob
+import requests
 import numpy as np
 import pandas as pd
 
@@ -8,11 +10,15 @@ import pandas as pd
 """
 """
 
-def SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=True):
+def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
     """
     A function that extracts the catchment boundary and flow frequency data for a specified xy location using the USGS StreamStats web application.
     """
     assert rcode=='MD' or rcode=='NY' or 'WI', "This tool is not been tested for this state and will fail"
+
+
+    stats_group=2 #Peak-annual flows
+    configs=2 #?
 
     waterhsed_url = 'https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?'
     PercentOverlay_url = 'https://gis.streamstats.usgs.gov/arcgis/rest/services/nss/regions/MapServer/exts/PercentOverlayRESTSOE/PercentOverlay'
@@ -156,33 +162,13 @@ def get_peaks(ff_json):
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
     return ffdata
 
-
-def snappoint_analysis(geom, rcode, status=True): 
-    """ A function to loop over the SS_scrape function for every catchment outlet within the geom dataframe. This function returns the flow frequency data, catchment boundaries, and any outlet locations whose calculations failed.
-    Arguments: geom is the shapley points from the shapefile containing the outlet locations, rcode is the state abbreviation, status indiates if we want to display the print statements
-    """
-    crs=4326  #Spatial reference
-    stats_group=2 #Peak-annual flows
-    configs=2 #?
-    ffdata={} #Dictionary to store the outlet flow frequency data dictionaries
-    polyg={} #Dictionary to store the catchment polygons
-    failID=[] #List to store outlet locations whose flow frequency/catchment polygons were not calculated
-    disp=True #Set display to True so that the print statements from SS_scrap are shown.
-    if not status: #If status is set to False by the user, then do not print the statements from SS_scrape
-        disp=False
-    for i, xy in enumerate(geom): #For gdf.geometry:
-        lon, lat = xy.x, xy.y #Longitude and latitude for each shapely point  
-        xlocation= lon #Xlocation to pass (longitude)
-        ylocation=  lat #ylocation to pass (latitute)
-        if status: #If status is True, then print the lat, lon
-            print(lon, lat)
-        polyg[i], ff_json  = SS_scrape(rcode, xlocation, ylocation, crs, stats_group, configs, status=disp) #Run the SS_scrape function
-        if rcode!='WI':
-        	ffdata[i]= get_peaks(ff_json) #Use the function above to extract the json data
-
-    return ffdata, polyg 
-
-
+def load_all_results(outputs):
+    '''Function to load in all of the results using glob
+    '''
+    poly_files = glob.glob(os.path.join(outputs,'*.geojson'), recursive = True)
+    print('{} Polygon Files Found'.format(len(poly_files)))
+    return poly_files
+    
 def ff_summary(pp_dic):
     """A function to extract the flow frequency data for each outlet within the pp_dic dictionary and create a summary dataframe
     Arguments: pp_dic is a dictionary containing the flow frequency data for each outlet location
