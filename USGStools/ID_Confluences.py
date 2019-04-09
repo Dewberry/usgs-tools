@@ -2,7 +2,7 @@ import pandas as pd
 from StreamStats_ID_Points import*
 
 
-def main(pourpoint: tuple, df: pd.DataFrame):
+def main(pourpoint: tuple, df: pd.DataFrame, display: bool=False):
 	''' Function that moves up a stream network from the pourpoint and identifies the conflunce pairs.
 	'''
 
@@ -31,6 +31,7 @@ def main(pourpoint: tuple, df: pd.DataFrame):
 				nogo=nogo+next_cell
 				confluence_pairs+=next_cell
 				confluence_pairs_orig+=next_cell
+				if display & (float(cnum/100.0)).is_integer(): print('Confluence Number:', cnum)
 			if len(confluence_pairs)>0:
 				starting_point=confluence_pairs[0]
 				confluence_pairs.remove(starting_point)
