@@ -34,12 +34,14 @@ def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
     try:
         r = requests.get(waterhsed_url, watershed_params)
         watershed_data = json.loads(r.content.decode())
-        if watershed_data['featurecollection'][1]['feature']['features']==[]:
+        if len(watershed_data['featurecollection'])<2:
+        	raise KeyboardInterrupt
+        elif watershed_data['featurecollection'][1]['feature']['features']==[]:
             raise KeyboardInterrupt
     except:
         print("Line 28: Expecting value: line 1 column 1 (char 0")
         count=1
-        while watershed_data['featurecollection'][1]['feature']['features']==[]: #This while statement is used to address the issue where the catchment is not succesfully delineated by StreamStats
+        while len(watershed_data['featurecollection'])<2 or watershed_data['featurecollection'][1]['feature']['features']==[]: #This while statement is used to address the issue where the catchment is not succesfully delineated by StreamStats
             print("while loop: watershed_data count:", count)
             r = requests.get(waterhsed_url, watershed_params)
             watershed_data = json.loads(r.content.decode())
@@ -156,7 +158,7 @@ def get_peaks(ff_json):
     Arguments: ff_json is a json file containing the flow frequency data for a catchment outlet
     '''  
     ffdata = {} ##Dictionary to store the outlet flow frequency data dictionaries
-    for i in range(len(ff_json[0]['RegressionRegions'][0]['Results'])): #For yeach recurrance interval:
+    for i in range(len(ff_json[0]['RegressionRegions'][0]['Results'])): #For each recurrance interval:
         RI = float(ff_json[0]['RegressionRegions'][0]['Results'][i]['Name'].rstrip('Year Peak Flood')) #Extract the value of the recurrance interval as a float
         Q = ff_json[0]['RegressionRegions'][0]['Results'][i]['Value'] #Extract the corresponding discharge
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
@@ -169,15 +171,15 @@ def load_all_results(outputs):
     print('{} Polygon Files Found'.format(len(poly_files)))
     return poly_files
     
-def ff_summary(pp_dic):
-    """A function to extract the flow frequency data for each outlet within the pp_dic dictionary and create a summary dataframe
-    Arguments: pp_dic is a dictionary containing the flow frequency data for each outlet location
+def ff_summary(ffdata):
+    """A function to extract the flow frequency data for each outlet within the ffdata dictionary and create a summary dataframe
+    Arguments: ffdata is a dictionary containing the flow frequency data for each outlet location
     """
-    OutID=list(pp_dic.keys()) #The outlet IDs
-    ffdata=pd.DataFrame(data={min(OutID):list(pp_dic[min(OutID)].values())},index=list(pp_dic[min(OutID)].keys())) #A dataframe to store the flow frequency data, where the index is the recurrance interval
-    ffdata.index.name='RI'#Recurrance interval
+    OutID=list(ffdata.keys()) #The outlet IDs
+    ffdata_df=pd.DataFrame(data={min(OutID):list(ffdata[min(OutID)].values())}, index=list(ffdata[min(OutID)].keys())) #A dataframe to store the flow frequency data, where the index is the recurrance interval
+    ffdata_df.index.name='RI'#Recurrance interval
     for i in OutID: #Add in the flow frequency data for each catchment outlet
-        ffdata[i]=list(pp_dic[i].values()) 
-    ffdata = ffdata.reindex(sorted(ffdata.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
-    print(ffdata.head())
-    return ffdata    
+        ffdata_df[i]=list(ffdata[i].values()) 
+    ffdata_df = ffdata_df.reindex(sorted(ffdata.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
+    print(ffdata_df.head())
+    return ffdata_df    
