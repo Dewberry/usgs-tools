@@ -180,6 +180,6 @@ def ff_summary(ffdata):
     ffdata_df.index.name='RI'#Recurrance interval
     for i in OutID: #Add in the flow frequency data for each catchment outlet
         ffdata_df[i]=list(ffdata[i].values()) 
-    ffdata_df = ffdata_df.reindex(sorted(ffdata.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
+    ffdata_df = ffdata_df.reindex(sorted(ffdata_df.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
     print(ffdata_df.head())
     return ffdata_df    
