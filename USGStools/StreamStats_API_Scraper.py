@@ -1,10 +1,13 @@
 import os
+import re
 import sys
 import json
 import glob
+import geojson
 import requests
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 
 
 """
@@ -164,13 +167,31 @@ def get_peaks(ff_json):
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
     return ffdata
 
-def load_all_results(outputs):
+def load_files(outputs):
     '''Function to load in all of the results using glob
     '''
     poly_files = glob.glob(os.path.join(outputs,'*.geojson'), recursive = True)
     print('{} Polygon Files Found'.format(len(poly_files)))
     return poly_files
-    
+
+def load_results(files, epsg):
+    '''
+    '''
+    ffdic={} 
+    gdf=gpd.GeoDataFrame(crs={'init': 'epsg:{}'.format(epsg)})                     
+    for _,filename in enumerate(files):
+        with open(filename) as f:
+            gj = geojson.load(f) 
+        temp_df=gpd.GeoDataFrame.from_features(gj)
+        ID_Num=re.findall('\d+', filename)
+        temp_df['ID_Num']=int(ID_Num[-1])
+        ffdata=gj['features'][0]['ffcurve']
+        for k, v in ffdata.items():
+            temp_df['RI_{}'.format(k)]=v
+        gdf=gdf.append(temp_df.iloc[0])
+        ffdic[ID_Num[-1]]=ffdata  
+    return gdf, ffdic
+
 def ff_summary(ffdata):
     """A function to extract the flow frequency data for each outlet within the ffdata dictionary and create a summary dataframe
     Arguments: ffdata is a dictionary containing the flow frequency data for each outlet location
