@@ -78,14 +78,14 @@ def geodataframe(longitude, latitude, epsg, cnum=[], distance=[], type=[]):
     coord_df['Coordinates'] = list(zip(coord_df.Lon, coord_df.Lat))
     coord_df['Coordinates'] = coord_df['Coordinates'].apply(Point)
     if len(cnum)>0:
-        coord_df['num'] = cnum
+        coord_df['ID_Num'] = cnum
     if len(distance)>0:
         coord_df['Distance'] = distance
     if len(type)>0:
         coord_df['type'] = type        
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates', crs={'init': 'epsg:%s' %epsg},)
-    gdf=gdf.sort_values(by=['num']) 
-    gdf['num']=np.arange(0, len(gdf))
+    gdf=gdf.sort_values(by=['ID_Num']) 
+    gdf['ID_Num']=np.arange(0, len(gdf))
     return gdf   
 
 
