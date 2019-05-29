@@ -41,6 +41,7 @@ def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
         	raise KeyboardInterrupt
         elif watershed_data['featurecollection'][1]['feature']['features']==[]:
             raise KeyboardInterrupt
+
     except:
         print("Line 28: Expecting value: line 1 column 1 (char 0")
         count=1
@@ -50,6 +51,7 @@ def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
             watershed_data = json.loads(r.content.decode())
             count+=1
 
+            watershed_data['featurecollection'][1]['feature']['features'] = 'no data found'
     workspaceID = watershed_data['workspaceID']
     featurecollection = watershed_data['featurecollection']
     watershed_poly = featurecollection[1]['feature']
@@ -58,9 +60,24 @@ def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
     PercentOverlay_params = {'geometry': json.dumps(watershed_poly), 'f': 'json'}
     r = requests.post(PercentOverlay_url, PercentOverlay_params)
     PercentOverlay = r.json()
+    i = 0
+    nodata = False
+    while type(PercentOverlay) is not list:
+        if i == 10:
+            break
+        PercentOverlay_params = {'geometry': json.dumps(watershed_poly), 'f': 'json'}
+        r = requests.post(PercentOverlay_url, PercentOverlay_params)
+        PercentOverlay = r.json()  
+        i+=1      
+   
+    while 'name' not in list(PercentOverlay[0].keys()):# 'name' not in PercentOverlay[0].keys():
+        PercentOverlay_params = {'geometry': json.dumps(watershed_poly), 'f': 'json'}
+        r = requests.post(PercentOverlay_url, PercentOverlay_params)
+        PercentOverlay = r.json()
     regressionregion_codes = []
     for group in PercentOverlay:
         group_name = group['name']
+
         if rcode=='MD':
             if 'Peak' in group_name and 'Urban' not in group_name:
                 regressionregion_codes.append(group['code'])
@@ -153,6 +170,8 @@ def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
     r = requests.post(peak_flow_url, json=json.loads(json.dumps([payload])))
     if status:
         print('Fetched Peak Flows')
+    else:
+        r.json({'error':'no data found'})
     return watershed_poly, r.json()
 
   
@@ -161,10 +180,14 @@ def get_peaks(ff_json):
     Arguments: ff_json is a json file containing the flow frequency data for a catchment outlet
     '''  
     ffdata = {} ##Dictionary to store the outlet flow frequency data dictionaries
+    #if ff_json[0]['RegressionRegions'] != []:
     for i in range(len(ff_json[0]['RegressionRegions'][0]['Results'])): #For each recurrance interval:
+
+
         RI = float(ff_json[0]['RegressionRegions'][0]['Results'][i]['Name'].rstrip('Year Peak Flood')) #Extract the value of the recurrance interval as a float
         Q = ff_json[0]['RegressionRegions'][0]['Results'][i]['Value'] #Extract the corresponding discharge
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
+    
     return ffdata
 
 def load_files(outputs):
@@ -191,6 +214,17 @@ def load_results(files, epsg):
         gdf=gdf.append(temp_df.iloc[0])
         ffdic[ID_Num[-1]]=ffdata  
     return gdf, ffdic
+
+def convert_attr(gdf):
+
+    """Function to convert Recurrence Interval attribute in geodataframe to a format that is compatible with ESRI"""
+    new_col = []
+    col = list(gdf.columns)
+    for i in col:
+        new_col.append(i.replace('.','_'))
+    gdf.columns = new_col
+    return gdf
+
 
 def ff_summary(ffdata):
     """A function to extract the flow frequency data for each outlet within the ffdata dictionary and create a summary dataframe
