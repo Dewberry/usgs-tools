@@ -180,10 +180,7 @@ def get_peaks(ff_json):
     Arguments: ff_json is a json file containing the flow frequency data for a catchment outlet
     '''  
     ffdata = {} ##Dictionary to store the outlet flow frequency data dictionaries
-    #if ff_json[0]['RegressionRegions'] != []:
     for i in range(len(ff_json[0]['RegressionRegions'][0]['Results'])): #For each recurrance interval:
-
-
         RI = float(ff_json[0]['RegressionRegions'][0]['Results'][i]['Name'].rstrip('Year Peak Flood')) #Extract the value of the recurrance interval as a float
         Q = ff_json[0]['RegressionRegions'][0]['Results'][i]['Value'] #Extract the corresponding discharge
         ffdata[RI] = Q  #Add the recurrance interval as a key and then the discharge as a value      
@@ -215,17 +212,6 @@ def load_results(files, epsg):
         ffdic[ID_Num[-1]]=ffdata  
     return gdf, ffdic
 
-def convert_attr(gdf):
-
-    """Function to convert Recurrence Interval attribute in geodataframe to a format that is compatible with ESRI"""
-    new_col = []
-    col = list(gdf.columns)
-    for i in col:
-        new_col.append(i.replace('.','_'))
-    gdf.columns = new_col
-    return gdf
-
-
 def ff_summary(ffdata):
     """A function to extract the flow frequency data for each outlet within the ffdata dictionary and create a summary dataframe
     Arguments: ffdata is a dictionary containing the flow frequency data for each outlet location
@@ -238,3 +224,13 @@ def ff_summary(ffdata):
     ffdata_df = ffdata_df.reindex(sorted(ffdata_df.columns), axis=1) #Sort the columns in the dataframe so that the column headers are in increasing order    
     print(ffdata_df.head())
     return ffdata_df    
+
+def convert_attr(gdf):
+    """Function to convert Recurrence Interval attribute in geodataframe to a format that is compatible with ESRI"""
+    new_col = []
+    col = list(gdf.columns)
+    for i in col: 
+        new_col.append(i.replace('.','_'))
+    gdf.columns = new_col
+    return gdf
+
