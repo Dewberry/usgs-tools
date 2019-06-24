@@ -34,7 +34,7 @@ class StreamGrid(object):
         """ Return the cell height/width
         """
         _,pixelwidth,_,_,_,pixelheight=self.data.GetGeoTransform()
-        assert pixelwidth==-pixelheight, "Expecting pixel height and width to be equal"
+        #assert pixelwidth==-pixelheight, "Expecting pixel height and width to be equal"
         return pixelwidth        
 
 
