@@ -11,7 +11,11 @@ __usgs-tools__ is a collection of tools, and Apps for interacting with the USGS 
 
 ---
 
-## Contents
+## Contents:
+
+`USGStools`: Source codes and functions called by notebooks. Includes also tools to automatically retrieve streamflow data for select [USGS Stream Gages](https://waterdata.usgs.gov/nwis/rt).
+
+`StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
 
 ##### Notebooks:
 
@@ -20,6 +24,8 @@ __usgs-tools__ is a collection of tools, and Apps for interacting with the USGS 
 - [__SS_CallMain__](SS_CallMain.ipynb):
 
 - [__StreamStats-API-Scraper__](StreamStats-API-Scraper.ipynb):
+
+
 
 #### R-Scripts:
 
@@ -42,10 +48,3 @@ __usgs-tools__ is a collection of tools, and Apps for interacting with the USGS 
 
 
 
-## Contents:
-
-`GageDataRetriever`: Tools to automatically retrieve streamflow data for select [USGS Stream Gages](https://waterdata.usgs.gov/nwis/rt). 
-
-`StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
-
-`USGStools`: Source codes and functions called by notebooks. 
