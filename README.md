@@ -1,6 +1,5 @@
 # [usgs-tools](https://dewberry.github.io/usgs-tools/)
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ---
@@ -12,39 +11,28 @@ __usgs-tools__ is a collection of tools, and Apps for interacting with the USGS 
 ---
 
 ## Contents:
+R and Python scripts interact with the available USGS services.
 
-`USGStools`: Source codes and functions called by notebooks. Includes also tools to automatically retrieve streamflow data for select [USGS Stream Gages](https://waterdata.usgs.gov/nwis/rt).
+* `USGStools`: Source codes and functions called by notebooks. Includes also tools to automatically retrieve streamflow data for select [USGS Stream Gages](https://waterdata.usgs.gov/nwis/rt).
 
-`StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
+* `StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
 
-##### Notebooks:
+### Notebooks:
 
-- [__GageExplorer__](GageExplorer.ipynb):
+- [__GageExplorer__](R/USGStools/GageExplorer.ipynb): USGS Stage/Discharge Gages Discovery. Download Data using the USGS Data Retrieval.
 
-- [__SS_CallMain__](SS_CallMain.ipynb):
+- [__USGS_gage_filter__](R/USGStools/USGS_gage_filter.ipynb): Filter USGS gages based on the record availability and drainage area similarity for a given USGS station.
 
-- [__StreamStats-API-Scraper__](StreamStats-API-Scraper.ipynb):
+- [__ClipRaster_withMask__](Python/StreamStats/ClipRaster_withMask.ipynb): Tool to clip a stream grid raster by a catchment polygon.
 
+- [__StreamStats_API_Scraper_Auto__](Python/StreamStats/StreamStats_API_Scraper_Auto.ipynb): Tool to automatically run the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects) for multiple points within a catchment and return the flow frequency curves and subcatchment boundaries.
 
-
-#### R-Scripts:
-
-
-###### Required packages:
-
-
-#### Python-Scripts:
-
-
-###### Required libraries:
+- [__StreamStats_ID_Points__](Python/StreamStats/StreamStats_ID_Points.ipynb): Tool to identify confluence pair points for tributaries of a specific length, add points to the main stem of a stream network at a specific distance interval, and export a shapefile of the points.
 
 ---
 
 ## References:
 
-[USGS-R](https://github.com/USGS-R):
+[USGS-R](https://github.com/USGS-R)
 
-[dataRetrieval](https://github.com/USGS-R/dataRetrieval):
-
-
-
+[dataRetrieval](https://github.com/USGS-R/dataRetrieval)
