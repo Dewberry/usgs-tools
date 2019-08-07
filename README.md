@@ -19,9 +19,9 @@ R and Python scripts interact with the available USGS services.
 
 ### Notebooks:
 
-- [__GageExplorer__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/ready-to-publish/R/USGStools/GageExplorer.ipynb): USGS Stage/Discharge Gages Discovery. Download Data using the USGS Data Retrieval.
+- [__GageExplorer__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/master/R/Notebooks/GageExplorer.ipynb): USGS Stage/Discharge Gages Discovery. Download Data using the USGS Data Retrieval.
 
-- [__USGS_gage_filter__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/ready-to-publish/R/USGStools/USGS_gage_filter.ipynb): Filter USGS gages based on the record availability and drainage area similarity for a given USGS station.
+- [__USGS_gage_filter__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/master/R/Notebooks/USGS_gage_filter.ipynb): Filter USGS gages based on the record availability and drainage area similarity for a given USGS station.
 
 - [__ClipRaster_withMask__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/ready-to-publish/Python/StreamStats/ClipRaster_withMask.ipynb): Tool to clip a stream grid raster by a catchment polygon.
 
