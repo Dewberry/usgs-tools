@@ -1,22 +1,10 @@
-##############################################################################
-list.of.packages <- c("RColorBrewer","dataRetrieval",
-                      "curl","repr","maps","dplyr", "stringr",
-                      "ggplot2","leaflet","leafem","raster",
-                      "raster","shiny","htmlwidgets","devtools",
-                      "shinycustomloader","shinydashboard","shinyjs","DT","DBI",
-                      "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
-lapply(list.of.packages, require, character.only = TRUE)
-
-
 ui <- fluidPage(#theme="bootstrap.css",
   useShinyjs(),
   useShinyalert(), 
   div(class="topimg",img(src='dewberry-logo.png', height="18%", width="18%",align = "right")),
   
   h1(id="big-heading", "USGS Gages Annual Flow Peak Tool"),
-  h4(a("https://github.com/Dewberry", href="https://github.com/Dewberry"), align="left", offset=10),
+  h4(a("Source Code", href="https://github.com/Dewberry/usgs-tools"), align="left", offset=10), 
   tags$style(HTML("
       @import url('//fonts.googleapis.com/css?family=Lobster|Cabin');
       
@@ -33,6 +21,7 @@ ui <- fluidPage(#theme="bootstrap.css",
                             margin-top:0.8%;
                           }"),
   sidebarPanel(
+    tags$head(tags$script(src = "enter_button.js")),
     width = 3,
     textInput(inputId ="site_no", 
               label = "Site Number", 
