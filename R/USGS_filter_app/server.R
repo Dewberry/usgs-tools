@@ -1,3 +1,15 @@
+##############################################################################
+list.of.packages <- c("RColorBrewer","dataRetrieval",
+                      "curl","repr","maps","dplyr", "stringr",
+                      "ggplot2","leaflet","leafem","raster",
+                      "raster","shiny","htmlwidgets","devtools",
+                      "shinycustomloader","shinydashboard","shinyjs","DT","DBI",
+                      "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+lapply(list.of.packages, require, character.only = TRUE)
+
+
 server <- function(input, output, session) {
   
   ### Pop up disclaimer
@@ -26,10 +38,19 @@ server <- function(input, output, session) {
       siteData(siteData)
     }
     
-    output$bar <- renderPlotly({
+    # sites_selected = NA
+    # while(is.na(sites_selected) == TRUE){
+    #   showModal(modalDialog(title = "PROCESSING SITE", input$site_no))
+    # }
+    #Show busy message during search
+    showModal(modalDialog(title = "BUSY", HTML("<h2>Processing NWIS Data
+      <img src = 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif' height='50px'></h2>"), footer = NULL))
+    
       site_data_df <- siteData
-      site_num = input$site_no
-      site_url <- paste0("https://waterdata.usgs.gov/nwis/inventory/?site_no=",site_num,"&agency_cd=USGS")
+      site_no = input$site_no
+
+      site_url <- paste0("https://waterdata.usgs.gov/nwis/inventory/?site_no=",site_no,"&agency_cd=USGS")
+
       site_data_df$site_url <- site_url
       paraCode <- "00060"
       years_of_records <- as.numeric(input$years_of_records)
@@ -38,7 +59,7 @@ server <- function(input, output, session) {
       
       site_lat <- site_data_df$dec_lat_va
       site_long <- site_data_df$dec_long_va
-      site_summary <- readNWISsite(siteNumber=site_num)
+      site_summary <- readNWISsite(siteNumber=site_no)
       site_da <- site_summary$drain_area_va
       
       bBox <- c(signif(site_long - bbox_delta,7),
@@ -52,23 +73,29 @@ server <- function(input, output, session) {
       para_sites <- as.data.frame(whatNWISsites(bBox=bBox, parameterCd=paraCode))
       para_sites$gtype = paraCode #gtype: gage type (stage, flow, ...etc)
       
+
       # Filter the retrieved USGS gages based on the defined criteria
       sites_meta <- whatNWISdata(siteNumber=para_sites$site_no, parameterCd=paraCode)
       sites_meta_years <- sites_meta[(sites_meta['end_date'] - sites_meta['begin_date']) > (years_of_records * 365.0),]
       sites_summary <- readNWISsite(siteNumber=sites_meta_years$site_no)
       sites_selected <- sites_summary[((1-da_epsilon)* site_da) <= sites_summary['drain_area_va'] & sites_summary['drain_area_va'] <= ((1+da_epsilon)* site_da), ]
       # Separate surrounding sites
-      site_surrounding <- sites_selected[sites_selected$site_no != site_num, ]
+      site_surrounding <- sites_selected[sites_selected$site_no != site_no, ]
       
       # Append URL 
       for(i in 1:nrow(sites_selected)){
-        sites_selected_no <- as.character(sites_selected$site_num)
+        sites_selected_no <- as.character(sites_selected$site_no)
         sites_selected$site_url <- paste0("https://waterdata.usgs.gov/nwis/inventory/?site_no=",sites_selected_no,"&agency_cd=USGS")
       }
       
+      for(i in 1:nrow(sites_selected)){
+        site_surrounding_no <- as.character(site_surrounding$site_no)
+        site_surrounding$site_url <- paste0("https://waterdata.usgs.gov/nwis/inventory/?site_no=",site_surrounding_no,"&agency_cd=USGS")
+      }
+
       # Separate central site
-      red_site <- sites_selected[sites_selected$site_no == paste(site_num),]
-      
+      red_site <- sites_selected[sites_selected$site_no == paste(site_no),]
+      print(red_site)
       # GET PEAK STREAMFLOW DATA
       # Select columns
       peak_ts <- readNWISpeak(input$site_no)
@@ -78,12 +105,19 @@ server <- function(input, output, session) {
       names(peak_ts) <- c("Station Name", "Site Number", "Peak Streamflow: Date", "Peak streamflow (cfs)", "Gage Height (feet)")
       chart_title=paste(peak_ts[1,1], peak_ts[1,2],': Peak streamflow (cfs)')
       
-      
+      removeModal()
       output$map <- renderLeaflet({
         
         leaflet(sites_selected) %>% 
           clearShapes() %>%
-          addTiles() %>% 
+          addTiles()  %>%
+          addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
+          addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
+          addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron") %>% 
+          addLayersControl(
+            baseGroups = c("Open Street Map", "Open Topo Map", "Esri World Imagery", "CartoDB Positron"),
+            #overlayGroups = c("Quakes", "Outline"),
+            options = layersControlOptions(collapsed = FALSE)) %>% 
           leafem::addMouseCoordinates() %>% 
           leafem::addHomeButton(extent(us_states),"Zoom to Home")%>%
           fitBounds(~min(dec_long_va), ~min(dec_lat_va), ~max(dec_long_va), ~max(dec_lat_va)) %>% 
@@ -125,15 +159,23 @@ server <- function(input, output, session) {
                       extensions = 'Responsive',
                       rownames=FALSE,
                       options=list(stateSave = FALSE, 
-                                   autoWidth = TRUE,
+                                   autoWidth = FALSE,
                                    lengthMenu = c(5, 10, 20)))
         
       })
       
+      output$data_file <- downloadHandler(
+        filename = function() {
+          paste('data-', Sys.Date(), '.csv', sep='')
+        },
+        content = function(file) {
+          write.csv(peak_ts, file)
+        }
+      )
+      
     })
     
-    
-  })
+
   
   
   
