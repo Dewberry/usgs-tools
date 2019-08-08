@@ -17,6 +17,8 @@ R and Python scripts interact with the available USGS services.
 
 * `StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
 
+*`USGS_Filter_App`: A web mapping application, called the [USGS Gages Annual Flow Peak Tool](https://github.com/Dewberry/usgs-tools/tree/master/R/USGS_filter_app), that generates a csv of peak streamflow data from NWIS sites located within a modifiable bounding box of a user-supplied NWIS gage. 
+
 ### Notebooks:
 
 - [__GageExplorer__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/master/R/Notebooks/GageExplorer.ipynb): USGS Stage/Discharge Gages Discovery. Download Data using the USGS Data Retrieval.
