@@ -1,21 +1,27 @@
-ui <- fluidPage(
-  shinyjs::useShinyjs(),
+ui <- fluidPage(#theme="bootstrap.css",
+  useShinyjs(),
+  useShinyalert(), 
+  div(class="topimg",img(src='dewberry-logo.png', height="18%", width="18%",align = "right")),
+  
   h1(id="big-heading", "USGS Gages Annual Flow Peak Tool"),
+  h4(a("https://github.com/Dewberry", href="https://github.com/Dewberry"), align="left", offset=10),
   tags$style(HTML("
-      @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+      @import url('//fonts.googleapis.com/css?family=Lobster|Cabin');
       
       h1 {
         font-family: 'Lobster', cursive;
-        font-weight: 500;
-        line-height: 1.1;
         color: #006F41;
       }
 
     ")),
   
-  # side panel
+  tags$style(".topimg {
+                            
+                            margin-right:1%;
+                            margin-top:0.8%;
+                          }"),
   sidebarPanel(
-    
+    width = 3,
     textInput(inputId ="site_no", 
               label = "Site Number", 
               width = '400px',
@@ -36,21 +42,16 @@ ui <- fluidPage(
               width = '400px',
               value = 1,
               placeholder = "What is the Bounding Box delta?"),
-    
-    actionButton(
-      inputId = "SubmitButton",
-      label = "Submit"
-    ),
-    
+    actionButton("getInfo", "Get site info"),
     downloadButton('downloadData', 'Download Data'),
     h4(''),
-    dataTableOutput('table01'),
-    width = 3),
+    dataTableOutput('siteData')
+  ),
   
-  # main panel
   mainPanel(
-    leafletOutput('map01', width = "110%", height="500px"),
-    br(),
-    plotlyOutput('hist01', width = "110%")
-  )
-)
+    leafletOutput('map', width = "110%", height="500px"),
+    #br(),
+    plotlyOutput('bar', width = "110%"),
+    tags$footer(align="center", 
+                style="font-size:100%", "Disclaimer: The information contained in this website is for demonstration purposes only. Any reliance you place on such information is therefore strictly at your own risk."
+    )))
