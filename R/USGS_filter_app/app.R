@@ -4,7 +4,7 @@ list.of.packages <- c("RColorBrewer","dataRetrieval", "skimr",
                       "ggplot2","leaflet","leafem","raster",
                       "raster","shiny","htmlwidgets","devtools",
                       "shinycssloaders","shinydashboard","shinyjs","DT","DBI",
-                      "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog", "utf8", "stargazer")
+                      "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog", "utf8")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 invisible(lapply(list.of.packages, require, character.only = TRUE))
