@@ -91,7 +91,7 @@ server <- function(input, output, session) {
       cols = c("station_nm","site_no","peak_dt","peak_va","gage_ht", "drain_area_va")
       peak_ts_merge_ <- peak_ts_merge[,cols]
       # Change names
-      names(peak_ts_merge_) <- c("Station Name", "Site Number", "Peak Streamflow: Date", "Peak streamflow (cfs)", "Gage Height (feet)", "Drainage Area")
+      names(peak_ts_merge_) <- c("Station Name", "Site Number", "Date", "Peak Streamflow (cfs)", "Gage Height (feet)", "Drainage Area")
       
       
       removeModal()
@@ -101,12 +101,12 @@ server <- function(input, output, session) {
         
       leaflet(sites_selected) %>% 
         clearShapes() %>%
-          addTiles()  %>%
           addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
+          addTiles(group="Open Street Map")  %>%
           addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
           addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron") %>% 
           addLayersControl(
-          baseGroups = c("Open Street Map", "Open Topo Map", "Esri World Imagery", "CartoDB Positron"),
+          baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
           #overlayGroups = c("Quakes", "Outline"),
             options = layersControlOptions(collapsed = FALSE)) %>% 
           leafem::addMouseCoordinates() %>% 
@@ -133,13 +133,13 @@ server <- function(input, output, session) {
       
       ## Render Bar Chart
       gg_red <- peak_ts_merge_[peak_ts_merge_$`Site Number`==red_site$site_no,]
-      chart_title=paste(gg_red[1,1], gg_red[1,2],': Peak streamflow (cfs)')
+      chart_title=paste(gg_red[1,1], gg_red[1,2],': Peak Streamflow (cfs)')
       output$bar <- renderPlotly({
-          ggplot(gg_red) +
-            geom_bar(aes(x=`Peak Streamflow: Date`,y=`Peak streamflow (cfs)`),
-                     stat="identity", 
-                     width=125) +
-            ylab('Peak streamflow (cfs)') +
+          ggplot(data=gg_red, aes(x=`Date`,y=`Peak Streamflow (cfs)`, fill=`Peak Streamflow (cfs)`)) +
+            geom_bar(stat="identity") +
+            scale_fill_gradient2(low='red', mid='snow3', high='darkgreen', space='Lab')+ 
+           geom_smooth()+ 
+            ylab('Peak Streamflow (cfs)') +
             xlab('Date') +
             # xlim(min(qDat$drain_area_va), max(qDat$drain_area_va))+
             ggtitle(chart_title)+
@@ -165,8 +165,12 @@ server <- function(input, output, session) {
           },
           content = function(file) {
             write.csv(peak_ts, file)
-          }
-        )
+          })
+        
+        output$summary <- renderPrint({
+          skim_with(numeric = list(hist = NULL))
+          skim(peak_ts_merge_) 
+        })
     }
 
 })
@@ -176,20 +180,34 @@ server <- function(input, output, session) {
 ## Run all the time
 ###################  
   
-  
- output$map <- renderLeaflet({
-    leaflet() %>% setView(-93.65, 42.0285, zoom = 4) %>%
-      # Base groups
-      addTiles() %>%
-      addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
-      addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
-      addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
-      # Layers control
-      addLayersControl(
-        baseGroups = c("Open Street Map", "Open Topo Map", "Esri World Imagery", "CartoDB Positron"),
-        #overlayGroups = c("Quakes", "Outline"),
-        options = layersControlOptions(collapsed = FALSE)
-      )
+  output$leaf=renderUI({
+    leafletOutput('map', width = "100%", height = input$Height)
   })
+  
+  output$map = renderLeaflet(leaflet() %>% setView(-93.65, 42.0285, zoom = 4) %>%
+                               # Base groups
+                               addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
+                               addTiles(group = "Open Street Map") %>%
+                               addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
+                               addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
+                               # Layers control
+                               addLayersControl(
+                                 baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
+                                 #overlayGroups = c("Quakes", "Outline"),
+                                 options = layersControlOptions(collapsed = FALSE)))
+  
+ # output$map <- renderLeaflet({
+ #    leaflet() %>% setView(-93.65, 42.0285, zoom = 4) %>%
+ #      # Base groups
+ #      addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
+ #      addTiles(group = "Open Street Map") %>%
+ #      addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
+ #      addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
+ #      # Layers control
+ #      addLayersControl(
+ #        baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
+ #        #overlayGroups = c("Quakes", "Outline"),
+ #        options = layersControlOptions(collapsed = FALSE))
+ #  })
   
 }
