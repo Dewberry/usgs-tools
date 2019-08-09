@@ -1,3 +1,15 @@
+##############################################################################
+list.of.packages <- c("RColorBrewer","dataRetrieval",
+                      "curl","repr","maps","dplyr", "stringr",
+                      "ggplot2","leaflet","leafem","raster",
+                      "raster","shiny","htmlwidgets","devtools",
+                      "shinycustomloader","shinydashboard","shinyjs","DT","DBI",
+                      "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+lapply(list.of.packages, require, character.only = TRUE)
+##############################################################################
+
 ui <- fluidPage(#theme="bootstrap.css",
   useShinyjs(),
   useShinyalert(), 
@@ -16,11 +28,15 @@ ui <- fluidPage(#theme="bootstrap.css",
     ")),
   
   tags$style(".topimg {
-                            
                             margin-right:1%;
                             margin-top:0.8%;
                           }"),
   sidebarPanel(
+    sliderInput("Height",
+                "Map Height in Pixels:",
+                min = 200,
+                max = 800,
+                value = 500),
     tags$head(tags$script(src = "enter_button.js")),
     width = 3,
     textInput(inputId ="site_no", 
@@ -45,14 +61,19 @@ ui <- fluidPage(#theme="bootstrap.css",
               placeholder = "What is the Bounding Box delta?"),
     actionButton("getInfo", "Get site info"),
     downloadButton('data_file', 'Download Data'),
-    h4(''),
-    dataTableOutput('siteData')
+    h4('')
+    #dataTableOutput('siteData')
   ),
   
   mainPanel(
-    leafletOutput('map', width = "110%", height="500px"),
+    uiOutput("leaf"),
+    #leafletOutput('map'),
+    tabsetPanel(type = "tabs",
+                tabPanel("DataTable", dataTableOutput('siteData')),
+                tabPanel("Plot", withSpinner(plotlyOutput('bar'))),
+                tabPanel("Summary", verbatimTextOutput("summary"))),
     #br(),
-    plotlyOutput('bar', width = "110%"),
+    #plotlyOutput('bar', width = "110%"),
     tags$footer(align="center", 
                 style="font-size:100%", "Disclaimer: The information contained in this website is for demonstration purposes only. Any reliance you place on such information is therefore strictly at your own risk."
     )))
