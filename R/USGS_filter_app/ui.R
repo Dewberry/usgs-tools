@@ -2,7 +2,7 @@
 list.of.packages <- c("RColorBrewer","dataRetrieval",
                       "curl","repr","maps","dplyr", "stringr",
                       "ggplot2","leaflet","leafem","raster",
-                      "raster","shiny","htmlwidgets","devtools",
+                      "raster","skimr","shiny","htmlwidgets","devtools",
                       "shinycustomloader","shinydashboard","shinycssloaders","shinyjs","DT","DBI",
                       "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -22,7 +22,7 @@ ui <- fluidPage(#theme="bootstrap.css",
       
       h1 {
         font-family: 'Lobster', cursive;
-        color: #006F41;
+        color: #7D0040;
       }
 
     ")),
