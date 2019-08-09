@@ -2,8 +2,8 @@
 list.of.packages <- c("RColorBrewer","dataRetrieval",
                       "curl","repr","maps","dplyr", "stringr",
                       "ggplot2","leaflet","leafem","raster",
-                      "raster","shiny","htmlwidgets","devtools",
-                      "shinycustomloader","shinydashboard","shinyjs","DT","DBI",
+                      "raster","skimr","shiny","htmlwidgets","devtools",
+                      "shinycustomloader","shinydashboard","shinycssloaders","shinyjs","DT","DBI",
                       "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -22,7 +22,7 @@ ui <- fluidPage(#theme="bootstrap.css",
       
       h1 {
         font-family: 'Lobster', cursive;
-        color: #006F41;
+        color: #7D0040;
       }
 
     ")),
@@ -33,12 +33,13 @@ ui <- fluidPage(#theme="bootstrap.css",
                           }"),
   sidebarPanel(
     sliderInput("Height",
-                "Map Height in Pixels:",
+                "Change Map Size:",
                 min = 200,
                 max = 800,
                 value = 500),
     tags$head(tags$script(src = "enter_button.js")),
     width = 3,
+
     textInput(inputId ="site_no", 
               label = "Site Number", 
               width = '400px',
@@ -55,7 +56,7 @@ ui <- fluidPage(#theme="bootstrap.css",
               value = 0.25,
               placeholder = "What is the Drainage Area Epsilon?"),
     textInput(inputId ="bbox_delta", 
-              label = "Bounding Box Delta - Degrees", 
+              label = "Bounding Box Delta (Degrees). Within the contiguous United States, each degree of latitude is ~ 70 miles apart.", 
               width = '400px',
               value = 1,
               placeholder = "What is the Bounding Box delta?"),
@@ -70,7 +71,7 @@ ui <- fluidPage(#theme="bootstrap.css",
     #leafletOutput('map'),
     tabsetPanel(type = "tabs",
                 tabPanel("DataTable", dataTableOutput('siteData')),
-                tabPanel("Plot", withSpinner(plotlyOutput('bar'))),
+                tabPanel("Plot", plotlyOutput('bar')),
                 tabPanel("Summary", verbatimTextOutput("summary"))),
     #br(),
     #plotlyOutput('bar', width = "110%"),
