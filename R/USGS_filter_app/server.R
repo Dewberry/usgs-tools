@@ -94,7 +94,7 @@ server <- function(input, output, session) {
       print(red_site)
       
       
-      #####################################
+
       
       # GET PEAK STREAMFLOW DATA
       # Select columns
@@ -105,16 +105,16 @@ server <- function(input, output, session) {
       # Change names
       names(peak_ts_merge_) <- c("Station Name", "Site Number", "Date", "Peak Streamflow (cfs)", "Gage Height (feet)", "Drainage Area")
       
-      #########################
-      ## Summarize data table
-      #########################
+      #####################################
       
+      # Aggregate data table
       dt=data.table(peak_ts_merge_)
+      dtSummary=dt[,list(count = .N,`Mean Peak Streamflow`=mean(`Peak Streamflow (cfs)`), 
+                         `Mean Gage Height`=mean(`Gage Height (feet)`), 
+                         `Drainage Area`=median(`Drainage Area`)), by=list(`Site Number`, `Station Name`)]
       
-      dtSummary=dt[,list(`Record Count` = .N,`Mean Peak Streamflow`=round(mean(`Peak Streamflow (cfs)`),2), 
-               `Mean Gage Height`=round(mean(`Gage Height (feet)`),2), 
-               `Drainage Area`=round(median(`Drainage Area`),2),2), 
-  by=list(`Site Number`, `Station Name`)]
+      #####################################
+      
       
       removeModal()
       
@@ -153,7 +153,9 @@ server <- function(input, output, session) {
                                           "' target='_blank'>", "USGS URL</a>"),
                            label = site_surrounding$station_nm)})
       
+      #################################
       ## Render Bar Chart
+      #################################
       gg_red <- peak_ts_merge_[peak_ts_merge_$`Site Number`==red_site$site_no,]
       chart_title=paste(gg_red[1,1], gg_red[1,2],': Peak Streamflow (cfs)')
       output$bar <- renderPlotly({
@@ -217,5 +219,5 @@ server <- function(input, output, session) {
                                  baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
                                  #overlayGroups = c("Quakes", "Outline"),
                                  options = layersControlOptions(collapsed = FALSE)))
-  
+
 }
