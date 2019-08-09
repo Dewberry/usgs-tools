@@ -1,9 +1,9 @@
 ##############################################################################
 list.of.packages <- c("RColorBrewer","dataRetrieval",
-                      "curl","repr","maps","dplyr", "stringr",
+                      "curl","shinycssloaders","skimr","repr","maps","dplyr", "stringr",
                       "ggplot2","leaflet","leafem","raster",
-                      "raster","skimr", "shiny","htmlwidgets","devtools",
-                      "shinycustomloader","shinydashboard","shinycssloaders","shinyjs","DT","DBI",
+                      "raster","shiny","htmlwidgets","devtools",
+                      "shinydashboard","shinyjs","DT","DBI",
                       "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -105,6 +105,15 @@ server <- function(input, output, session) {
       # Change names
       names(peak_ts_merge_) <- c("Station Name", "Site Number", "Date", "Peak Streamflow (cfs)", "Gage Height (feet)", "Drainage Area")
       
+      #########################
+      ## Summarize data table
+      #########################
+      
+      dt=data.table(peak_ts_merge_)
+      
+      dtSummary=dt[,list(`Record Count` = .N,`Mean Peak Streamflow`=round(mean(`Peak Streamflow (cfs)`),2), 
+               `Mean Gage Height`=round(mean(`Gage Height (feet)`),2), 
+               `Drainage Area`=round(median(`Drainage Area`),2),2)), by=list(`Site Number`, `Station Name`)]
       
       removeModal()
       
@@ -160,7 +169,7 @@ server <- function(input, output, session) {
         
         # Output the data table
         output$siteData = renderDataTable({
-          DT::datatable(peak_ts_merge_[, names(peak_ts_merge_) !="Station Name"],
+          DT::datatable(dtSummary,
                         selection = "single",
                         extensions = 'Responsive',
                         rownames=FALSE,
@@ -207,19 +216,5 @@ server <- function(input, output, session) {
                                  baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
                                  #overlayGroups = c("Quakes", "Outline"),
                                  options = layersControlOptions(collapsed = FALSE)))
-  
- # output$map <- renderLeaflet({
- #    leaflet() %>% setView(-93.65, 42.0285, zoom = 4) %>%
- #      # Base groups
- #      addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
- #      addTiles(group = "Open Street Map") %>%
- #      addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
- #      addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
- #      # Layers control
- #      addLayersControl(
- #        baseGroups = c("Open Topo Map", "Open Street Map", "Esri World Imagery", "CartoDB Positron"),
- #        #overlayGroups = c("Quakes", "Outline"),
- #        options = layersControlOptions(collapsed = FALSE))
- #  })
   
 }
