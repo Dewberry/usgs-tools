@@ -113,7 +113,8 @@ server <- function(input, output, session) {
       
       dtSummary=dt[,list(`Record Count` = .N,`Mean Peak Streamflow`=round(mean(`Peak Streamflow (cfs)`),2), 
                `Mean Gage Height`=round(mean(`Gage Height (feet)`),2), 
-               `Drainage Area`=round(median(`Drainage Area`),2),2)), by=list(`Site Number`, `Station Name`)]
+               `Drainage Area`=round(median(`Drainage Area`),2),2), 
+  by=list(`Site Number`, `Station Name`)]
       
       removeModal()
       
