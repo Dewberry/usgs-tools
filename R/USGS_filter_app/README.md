@@ -10,7 +10,7 @@ Summary data will also be presented below the web map. To download peak streamfl
 While this app can currently only be configured to search by NWIS Site Number, it will soon allow the user to search NWIS sites by Open Street Map geocoded places.
 
 ## Features
---- (Confirm these statements with Mohamed) ---
+<!-- --- (Confirm these statements with Mohamed) --- -->
 - Default years of Peak Streamflow data are 30. This value sets the bounds for how far back in time peak streamflow data will be retrieved.
 - Default Drainage Area Epsilon is 0.25. This value ensures the drainage area of the area of interest across those defined years is between 0.75 X the site's drainage area, and 1.25 X the site's drainage area.
 - Default Bounding Box Delta is 1 degree (about 70 miles or 111 km). This value sets the distance conditions for drawing the bounding box around the initial NWIS site.
