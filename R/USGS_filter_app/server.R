@@ -2,7 +2,7 @@
 list.of.packages <- c("RColorBrewer","dataRetrieval",
                       "curl","shinycssloaders","skimr","repr","maps","dplyr", "stringr",
                       "ggplot2","leaflet","leafem","raster",
-                      "raster","shiny","htmlwidgets","devtools",
+                      "raster","shiny","htmlwidgets","devtools", "data.table",
                       "shinydashboard","shinyjs","DT","DBI",
                       "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -17,6 +17,8 @@ server <- function(input, output, session) {
              "The information contained in this website is for demonstration purposes only. Any reliance you place on such information is therefore strictly at your own risk.", type = "info")
   ####
   siteData = reactiveVal()
+  
+
   
   observeEvent(input$getInfo, {
     
@@ -108,7 +110,7 @@ server <- function(input, output, session) {
       #####################################
       
       # Aggregate data table
-      dt=data.table(peak_ts_merge_)
+      dt=data.table::data.table(peak_ts_merge_)
       dtSummary=dt[,list(count = .N,`Mean Peak Streamflow`=mean(`Peak Streamflow (cfs)`), 
                          `Mean Gage Height`=mean(`Gage Height (feet)`), 
                          `Drainage Area`=median(`Drainage Area`)), by=list(`Site Number`, `Station Name`)]
