@@ -212,7 +212,7 @@ server <- function(input, output, session) {
       output$bar <- renderPlotly({
           ggplot(data=gg_red, aes(x=`Date`,y=`Peak Streamflow (cfs)`, fill=`Peak Streamflow (cfs)`)) +
             geom_bar(stat="identity") +
-            scale_fill_gradient2(low='red', mid='snow3', high='darkgreen', space='Lab')+ 
+            scale_fill_gradient2(low='red', mid='snow3', high='#7D0040', space='Lab')+ 
            geom_smooth()+ 
             ylab('Peak Streamflow (cfs)') +
             xlab('Date') +
