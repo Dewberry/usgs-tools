@@ -25,30 +25,32 @@ server <- function(input, output, session) {
   #   ignoreInit = TRUE
   # )
   
-  observeEvent(
-    input$search_preference,                                     ## eventExpr
-    {
-      if(input$search_preference == "geo_location"){
-        #req(input$geo_location)
-        toggle(id="geocode")
-        hide(id="site_no")
-        }else if(input$search_preference == "site_number"){
-          #req(input$site_number)
-          toggle(id="site_no")
-          hide(id="geocode")
-          } else{
-            return(NULL)
-          }
-      },  ## handlerExpr
-    ignoreInit = FALSE
-  )
+  # observeEvent(
+  #   input$search_preference,                                     ## eventExpr
+  #   {
+  #     if(input$search_preference == "geo_location"){
+  #       #req(input$geo_location)
+  #       toggle(id="geocode")
+  #       hide(id="site_no")
+  #       }else if(input$search_preference == "site_number"){
+  #         #req(input$site_number)
+  #         toggle(id="site_no")
+  #         hide(id="geocode")
+  #         } else{
+  #           return(NULL)
+  #         }
+  #     },  ## handlerExpr
+  #   ignoreInit = FALSE
+  # )
 
   observeEvent(input$getInfo, {
     
     #Show busy message during search
     showModal(modalDialog(title = "BUSY", HTML("<h2>Looking for website
       <img src = 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif' height='50px'></h2>"), footer = NULL))
+  
     
+    print(input$site_no)
     #Check if site exists
     error = "none"
     siteData = tryCatch(whatNWISsites(siteNumber = input$site_no, parameterCd = "00060") , 
@@ -89,24 +91,28 @@ server <- function(input, output, session) {
                 signif(site_long + bbox_delta,7),
                 signif(site_lat + bbox_delta,7))
         
-      bbox_shiny <- c(bBox[1],bBox[3],bBox[2],bBox[4])
+      print(bBox)
+      #bbox_shiny <- c(bBox[1],bBox[3],bBox[2],bBox[4])
         
       
       ####################################################
-      # Set bounding box based on Location search 
-      geocode = geocode_OSM(input$geocode)
-      print(geocode$coords)
-      
-      site_lat <- geocode$y
-      site_long <- geocode$x
-      
-      # Set Bounding box based on Location Search
-      bBox <- c(signif(site_long - bbox_delta,7),
-                signif(site_lat - bbox_delta,7),
-                signif(site_long + bbox_delta,7),
-                signif(site_lat + bbox_delta,7))
-      
-      bbox_shiny <- c(bBox[1],bBox[3],bBox[2],bBox[4])
+      #Set bounding box based on Location search
+      # print(input$geocode)
+      # geocode = geocode_OSM(input$geocode)
+      # print(geocode$coords)
+      # 
+      # site_lat_geocode <- geocode$coords[2]
+      # site_long_geocode <- geocode$coords[1]
+      # print(site_lat_geocode)
+      # print(site_long_geocode)
+      # # Set Bounding box based on Location Search
+      # bBox_geocode <- c(signif(site_long_geocode - bbox_delta,7),
+      #           signif(site_lat_geocode - bbox_delta,7),
+      #           signif(site_long_geocode + bbox_delta,7),
+      #           signif(site_lat_geocode + bbox_delta,7))
+      # 
+      # bbox_geocode_shiny <- c(bBox_geocode[1],bBox_geocode[3],bBox_geocode[2],bBox_geocode[4])
+      # print(bBox_geocode)
       ####################################################
       
       
