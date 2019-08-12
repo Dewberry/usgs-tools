@@ -1,6 +1,3 @@
-![Dewberry](https://static1.squarespace.com/static/591216d0197aeaf88cc00895/5934d5d915cf7dc475a10fff/59762a6f59cc6804bf09a4b6/1500916339088/logo-dewberry.png =100x20)
-![USGS](https://upload.wikimedia.org/wikipedia/commons/0/08/USGS_logo.png =100x20)
-
 # USGS Filter App
 
 A web mapping application, called the USGS Gages Annual Flow Peak Tool, that generates a csv of peak streamflow data from NWIS sites located within a modifiable bounding box of a user-supplied NWIS gage.
@@ -30,3 +27,6 @@ branch. Pull requests are warmly welcome.
 ## Licensing
 
 The code in this project is licensed under the Apache License 2.0.
+
+<!-- ![Dewberry](https://static1.squarespace.com/static/591216d0197aeaf88cc00895/5934d5d915cf7dc475a10fff/59762a6f59cc6804bf09a4b6/1500916339088/logo-dewberry.png)
+![USGS](https://upload.wikimedia.org/wikipedia/commons/0/08/USGS_logo.png) -->
