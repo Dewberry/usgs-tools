@@ -115,7 +115,6 @@ server <- function(input, output, session) {
       # print(bBox_geocode)
       ####################################################
       
-      
       # Get site metadata for the Bbox
       para_sites <- as.data.frame(whatNWISsites(bBox=bBox, parameterCd=paraCode))
       para_sites$gtype = paraCode #gtype: gage type (stage, flow, ...etc)
@@ -143,9 +142,6 @@ server <- function(input, output, session) {
       # Separate central site
       red_site <- sites_selected[sites_selected$site_no == paste(site_no),]
       print(red_site)
-      
-      
-
       
       # GET PEAK STREAMFLOW DATA
       # Select columns
