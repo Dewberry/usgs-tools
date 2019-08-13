@@ -14,9 +14,12 @@ ui <- fluidPage(#theme="bootstrap.css",
   useShinyjs(),
   useShinyalert(), 
   div(class="topimg",img(src='dewberry-logo.png', height="18%", width="18%",align = "right")),
-  
+
   h1(id="big-heading", "USGS Gages Annual Flow Peak Tool"),
-  h4(a("Source Code", href="https://github.com/Dewberry/usgs-tools"), align="left", offset=10), 
+
+      # tags$a(img(src="f_logo_RGB-Black_58.png", height="25", width="25"), href="https://www.facebook.com/TheDewberryWay/"),
+      # tags$a(img(src="twitter.png", height="25", width="25"), href="https://twitter.com/thedewberryway?lang=en")),
+  #h4(a("Source Code", href="https://github.com/Dewberry/usgs-tools"), align="left", offset=10), 
   tags$style(HTML("
       @import url('//fonts.googleapis.com/css?family=Lobster|Cabin');
       
@@ -29,8 +32,11 @@ ui <- fluidPage(#theme="bootstrap.css",
   
   tags$style(".topimg {
                             margin-right:1%;
-                            margin-top:0.8%;
+                            margin-bottom:0%;
+                            margin-top:1%;
                           }"),
+  br(),
+  
   sidebarPanel(
     sliderInput("Height",
                 "Change Map Size:",
@@ -39,12 +45,25 @@ ui <- fluidPage(#theme="bootstrap.css",
                 value = 500),
     tags$head(tags$script(src = "enter_button.js")),
     width = 3,
-
-    textInput(inputId ="site_no", 
+    
+    # selectInput("search_preference",
+    #             "How do you want to search?:",
+    #             c("NWIS Site Number" = "site_number",
+    #               "Geographic Location" = "geo_location")),
+    
+    
+    #hidden(
+      textInput(inputId ="site_no", 
               label = "Site Number", 
               width = '400px',
-              value="01615000",
+              value = "01615000",
               placeholder = "Please enter the NWIS Site Number."),
+    #),
+    # hidden(textInput(inputId = "geocode", 
+    #           label = "Search Location", 
+    #           width = '400px',
+    #           value = "Fairfax, VA",
+    #           placeholder = "Please Search by Location")),
     textInput(inputId ="years_of_records", 
               label = "Years of Records", 
               width = '400px',
@@ -68,6 +87,10 @@ ui <- fluidPage(#theme="bootstrap.css",
   
   mainPanel(
     uiOutput("leaf"),
+    br(),
+    div(align="right",
+        tags$a(img(src="GitHub-Mark-32px.png", height="30", width="30"), href="https://github.com/Dewberry/usgs-tools"),
+        tags$a(img(src="linkedin-black.png", height="30", width="30"), href="https://www.linkedin.com/company/dewberry")),
     #leafletOutput('map'),
     tabsetPanel(type = "tabs",
                 tabPanel("DataTable", dataTableOutput('siteData')),
@@ -75,6 +98,7 @@ ui <- fluidPage(#theme="bootstrap.css",
                 tabPanel("Summary", verbatimTextOutput("summary"))),
     #br(),
     #plotlyOutput('bar', width = "110%"),
+
     tags$footer(align="center", 
                 style="font-size:100%", "Disclaimer: The information contained in this website is for demonstration purposes only. Any reliance you place on such information is therefore strictly at your own risk."
     )))

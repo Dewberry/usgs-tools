@@ -5,6 +5,7 @@ list.of.packages <- c("RColorBrewer","dataRetrieval",
                       "raster","shiny","htmlwidgets","devtools", "data.table",
                       "shinydashboard","shinyjs","DT","DBI",
                       "spData","sf","shinythemes", "shinyalert", "plotly","tryCatchLog")
+
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 lapply(list.of.packages, require, character.only = TRUE)
@@ -18,14 +19,38 @@ server <- function(input, output, session) {
   ####
   siteData = reactiveVal()
   
-
+  # observeEvent(
+  #   input$search_preference,                                     ## eventExpr
+  #   {toggle(id="site_no")},  ## handlerExpr
+  #   ignoreInit = TRUE
+  # )
   
+  # observeEvent(
+  #   input$search_preference,                                     ## eventExpr
+  #   {
+  #     if(input$search_preference == "geo_location"){
+  #       #req(input$geo_location)
+  #       toggle(id="geocode")
+  #       hide(id="site_no")
+  #       }else if(input$search_preference == "site_number"){
+  #         #req(input$site_number)
+  #         toggle(id="site_no")
+  #         hide(id="geocode")
+  #         } else{
+  #           return(NULL)
+  #         }
+  #     },  ## handlerExpr
+  #   ignoreInit = FALSE
+  # )
+
   observeEvent(input$getInfo, {
     
     #Show busy message during search
     showModal(modalDialog(title = "BUSY", HTML("<h2>Looking for website
       <img src = 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif' height='50px'></h2>"), footer = NULL))
+  
     
+    print(input$site_no)
     #Check if site exists
     error = "none"
     siteData = tryCatch(whatNWISsites(siteNumber = input$site_no, parameterCd = "00060") , 
@@ -44,9 +69,9 @@ server <- function(input, output, session) {
       showModal(modalDialog(title = "BUSY", HTML("<h2>Processing NWIS Data
       <img src = 'https://media.giphy.com/media/sSgvbe1m3n93G/giphy.gif' height='50px'></h2>"), footer = NULL))
       
+      # Access NWIS Site
       site_data_df <- siteData
       site_no = input$site_no
-  
       site_url <- paste0("https://waterdata.usgs.gov/nwis/inventory/?site_no=",site_no,"&agency_cd=USGS")
   
       site_data_df$site_url <- site_url
@@ -59,14 +84,38 @@ server <- function(input, output, session) {
       site_long <- site_data_df$dec_long_va
       site_summary <- readNWISsite(siteNumber=site_no)
       site_da <- site_summary$drain_area_va
-        
+      
+      # Set Bounding box based on NWIS Site
       bBox <- c(signif(site_long - bbox_delta,7),
                 signif(site_lat - bbox_delta,7),
                 signif(site_long + bbox_delta,7),
                 signif(site_lat + bbox_delta,7))
         
-      bbox_shiny <- c(bBox[1],bBox[3],bBox[2],bBox[4])
+      print(bBox)
+      #bbox_shiny <- c(bBox[1],bBox[3],bBox[2],bBox[4])
         
+      
+      ####################################################
+      #Set bounding box based on Location search
+      # print(input$geocode)
+      # geocode = geocode_OSM(input$geocode)
+      # print(geocode$coords)
+      # 
+      # site_lat_geocode <- geocode$coords[2]
+      # site_long_geocode <- geocode$coords[1]
+      # print(site_lat_geocode)
+      # print(site_long_geocode)
+      # # Set Bounding box based on Location Search
+      # bBox_geocode <- c(signif(site_long_geocode - bbox_delta,7),
+      #           signif(site_lat_geocode - bbox_delta,7),
+      #           signif(site_long_geocode + bbox_delta,7),
+      #           signif(site_lat_geocode + bbox_delta,7))
+      # 
+      # bbox_geocode_shiny <- c(bBox_geocode[1],bBox_geocode[3],bBox_geocode[2],bBox_geocode[4])
+      # print(bBox_geocode)
+      ####################################################
+      
+      
       # Get site metadata for the Bbox
       para_sites <- as.data.frame(whatNWISsites(bBox=bBox, parameterCd=paraCode))
       para_sites$gtype = paraCode #gtype: gage type (stage, flow, ...etc)
@@ -163,7 +212,7 @@ server <- function(input, output, session) {
       output$bar <- renderPlotly({
           ggplot(data=gg_red, aes(x=`Date`,y=`Peak Streamflow (cfs)`, fill=`Peak Streamflow (cfs)`)) +
             geom_bar(stat="identity") +
-            scale_fill_gradient2(low='red', mid='snow3', high='darkgreen', space='Lab')+ 
+            scale_fill_gradient2(low='red', mid='snow3', high='#7D0040', space='Lab')+ 
            geom_smooth()+ 
             ylab('Peak Streamflow (cfs)') +
             xlab('Date') +
@@ -214,6 +263,7 @@ server <- function(input, output, session) {
                                # Base groups
                                addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
                                addTiles(group = "Open Street Map") %>%
+                               addSearchOSM() %>% 
                                addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
                                addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
                                # Layers control
