@@ -57,7 +57,7 @@ ui <- fluidPage(#theme="bootstrap.css",
       textInput(inputId ="site_no", 
                 label = "Search by NWIS Site Number", 
                 width = '400px',
-                value = "01615000",
+                #value = "01615000",
                 placeholder = "Enter the NWIS Site Number.")),
     
       hidden(textInput(inputId = "geocode",
