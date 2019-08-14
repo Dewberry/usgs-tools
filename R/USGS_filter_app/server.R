@@ -377,6 +377,7 @@ server <- function(input, output, session) {
         #####################################
 
         # Aggregate data table
+        dt=data.table::data.table(peak_ts_merge_)
         dtSummary=dt[,list(count = .N,
                            `Mean Peak Streamflow`=round(mean(`Peak Streamflow (cfs)`),3),
                            `Mean Gage Height`=round(mean(`Gage Height (feet)`),3),
