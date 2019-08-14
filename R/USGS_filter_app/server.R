@@ -122,25 +122,32 @@ server <- function(input, output, session) {
 
         # Separate central site
         red_site <- sites_selected[sites_selected$site_no == paste(site_no),]
-        print(red_site)
-
+       
         # GET PEAK STREAMFLOW DATA
         # Select columns
         peak_ts <- readNWISpeak(sites_selected$site_no)
+        
+        
         peak_ts_merge <- merge(peak_ts, sites_selected, by="site_no")
-        cols = c("station_nm","site_no","peak_dt","peak_va","gage_ht", "drain_area_va")
+        
+        cols = c("station_nm","site_no","peak_dt","peak_va","gage_ht", "drain_area_va", "dec_lat_va", "dec_long_va")
         peak_ts_merge_ <- peak_ts_merge[,cols]
         # Change names
-        names(peak_ts_merge_) <- c("Station Name", "Site Number", "Date", "Peak Streamflow (cfs)", "Gage Height (feet)", "Drainage Area")
-
+        names(peak_ts_merge_) <- c("Station Name", "Site Number", "Date", "Peak Streamflow (cfs)", "Gage Height (feet)", "Drainage Area", "Latitude", "Longitude")
+        
         #####################################
 
         # Aggregate data table
         dt=data.table::data.table(peak_ts_merge_)
         dtSummary=dt[,list(count = .N,`Mean Peak Streamflow`=mean(`Peak Streamflow (cfs)`),
                            `Mean Gage Height`=mean(`Gage Height (feet)`),
-                           `Drainage Area`=median(`Drainage Area`)), by=list(`Site Number`, `Station Name`)]
+                           `Drainage Area`=median(`Drainage Area`), `Latitude`=mean(Latitude), `Longitude`=mean(Longitude)), by=list(`Site Number`, `Station Name`)]
 
+        qSub <-  reactive({
+
+          dtSummary <- dtSummary
+
+        })
         #####################################
 
 
@@ -201,8 +208,8 @@ server <- function(input, output, session) {
         })
 
         # Output the data table
-        output$siteData = renderDataTable({
-          DT::datatable(dtSummary,
+        output$siteData <- renderDataTable({
+          DT::datatable(qSub(),
                         selection = "single",
                         extensions = 'Responsive',
                         rownames=FALSE,
@@ -210,6 +217,66 @@ server <- function(input, output, session) {
                                      autoWidth = FALSE,
                                      lengthMenu = c(5, 10, 20)))
 
+        })
+
+        # to keep track of previously selected row
+        prev_row <- reactiveVal()
+
+        # new icon style
+        my_icon = makeAwesomeIcon(icon = 'flag', markerColor = 'red', iconColor = 'white')
+
+        observeEvent(input$siteData_rows_selected, {
+          row_selected = qSub()[input$siteData_rows_selected,]
+          proxy <- leafletProxy('map')
+          print(row_selected)
+          proxy %>%
+            
+            # addCircleMarkers(popup=paste0( row_selected$`Station Name`,
+            #                                "<br>", "USGS site: ", row_selected$`Site Number`),
+            #                  layerId = as.character(row_selected$`Site Number`),
+            #                  lng=row_selected$Longitude,
+            #                  lat=row_selected$Latitude,
+            #                  color="red")
+          
+            addAwesomeMarkers(popup=paste0( row_selected$`Station Name`,
+                                            "<br>", "USGS site: ", row_selected$`Site Number`),
+                              layerId = as.character(row_selected$`Site Number`),
+                              lng=row_selected$Longitude,
+                              lat=row_selected$Latitude,
+                              icon = my_icon)
+
+          # Reset previously selected marker
+          if(!is.null(prev_row()))
+          {
+           
+            if(prev_row()$`Site Number` != red_site$site_no){
+             proxy %>%
+              
+              addCircleMarkers(popup=paste0( prev_row()$`Station Name`,
+                                             "<br>", "USGS site: ", prev_row()$`Site Number`),
+                               layerId = as.character(prev_row()$`Site Number`),
+                               lng=prev_row()$Longitude,
+                               lat=prev_row()$Latitude,
+                               color="blue")
+              } else {
+                                 proxy %>%
+                                   
+                                   addCircleMarkers(popup=paste0( prev_row()$`Station Name`,
+                                                                  "<br>", "USGS site: ", prev_row()$`Site Number`),
+                                                    layerId = as.character(prev_row()$`Site Number`),
+                                                    lng=prev_row()$Longitude,
+                                                    lat=prev_row()$Latitude,
+                                                    color="red")
+                                 
+                               }
+              # 
+              # addMarkers(popup=as.character(prev_row()$station_nm),
+              #            layerId = as.character(prev_row()$id),
+              #            lng=prev_row()$Longitude,
+              #            lat=prev_row()$Latitude)
+          }
+          # set new value to reactiveVal
+          prev_row(row_selected)
         })
 
         # Manage the download Handler
@@ -224,6 +291,13 @@ server <- function(input, output, session) {
         output$summary <- renderPrint({
           skim_with(numeric = list(hist = NULL))
           skim(peak_ts_merge_)
+        })
+
+        observeEvent(input$map01_marker_click, {
+          clickId <- input$map01_marker_click$id
+          dataTableProxy("DataTable") %>%
+            selectRows(which(qSub()$id == clickId)) %>%
+            selectPage(which(input$table01_rows_all == clickId) %/% input$table01_state$length + 1)
         })
       }
     }
