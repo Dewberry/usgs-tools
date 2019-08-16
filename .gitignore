@@ -1,5 +1,7 @@
 StreamStats/results
 StreamStats/data
+Python/hecrasio/Inputs
+.idea/
 
 # History files
 .Rhistory
