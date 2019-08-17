@@ -259,7 +259,7 @@ server <- function(input, output, session) {
                                # Base groups
                                addProviderTiles(providers$OpenTopoMap, group = "Open Topo Map") %>%
                                addTiles(group = "Open Street Map") %>%
-                               #addSearchOSM() %>% 
+                               # addSearchOSM() %>% 
                                addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
                                addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
                                # Layers control
