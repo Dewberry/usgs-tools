@@ -729,6 +729,7 @@ server <- function(input, output, session) {
                                leafem::addMouseCoordinates() %>% 
                                #addTiles(group = "Open Street Map") %>%
                                addSearchOSM() %>% 
+
                                addProviderTiles(providers$Esri.WorldImagery, group = "Esri World Imagery")%>%
                                addProviderTiles(providers$CartoDB.Positron, group = "CartoDB Positron")%>%
                                # Layers control
