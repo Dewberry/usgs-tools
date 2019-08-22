@@ -43,8 +43,9 @@ class StreamGrid(object):
         Return the cell height/width
         """
         _,pixelwidth,_,_,_,pixelheight=self.data.GetGeoTransform()
-        #assert pixelwidth==-pixelheight, "Expecting pixel height and width to be equal"
-        return pixelwidth        
+        # assert pixelwidth == -pixelheight,
+        # "Expecting pixel height and width to be equal"
+        return pixelwidth
 
 
 def coord2index(sg, lat, lon):
@@ -57,9 +58,12 @@ def coord2index(sg, lat, lon):
     :param lon:
     :return:
     """
-    transform=sg.data.GetGeoTransform() #Get the geotransform parameters
-    pix_x = int((lon - transform[0]) / transform[1]) #Row value
-    pix_y = int((transform[3] - lat ) / -transform[5]) #Column value
+    # Get the geotransform parameters
+    transform = sg.data.GetGeoTransform()
+    # Row value
+    pix_x = int((lon - transform[0]) / transform[1])
+    # Column value
+    pix_y = int((transform[3] - lat ) / -transform[5])
     return pix_x, pix_y
 
 
@@ -69,13 +73,15 @@ def index2coord(sg, confl):
     :param confl:
     :return:
     """
-    transform=sg.data.GetGeoTransform()
-    longitude=[]
-    latitude=[]
+    transform = sg.data.GetGeoTransform()
+    longitude = []
+    latitude = []
 
     for i in range(len(confl)):
-        longitude.append(((transform[1]*confl[i][0])+transform[0])+transform[1]/2.)
-        latitude.append((transform[3]-(confl[i][1]*-transform[5]))+transform[5]/2.)
+        longitude.append(((transform[1] * confl[i][0]) + transform[0]) +
+                         transform[1]/2.)
+        latitude.append((transform[3] - (confl[i][1] * -transform[5])) +
+                        transform[5]/2.)
     return longitude, latitude
 
 
@@ -87,9 +93,9 @@ def TrueDistance(cell1, cell2, cellsize):
     :param cellsize:
     :return:
     """
-    row=cell1[0]-cell2[0]
-    col=cell1[1]-cell2[1]
-    dis=np.sqrt(row**2+col**2)*cellsize
+    row = cell1[0] - cell2[0]
+    col = cell1[1] - cell2[1]
+    dis = np.sqrt(row ** 2 + col ** 2) * cellsize
     return dis 
 
 
@@ -116,7 +122,7 @@ def geodataframe(longitude, latitude, epsg, cnum = [], distance = [],
     gdf = gpd.GeoDataFrame(coord_df, geometry='Coordinates',
                            crs={'init': 'epsg:%s' %epsg},)
     gdf=gdf.sort_values(by=['ID_Num']) 
-    gdf['ID_Num']=np.arange(0, len(gdf))
+    gdf['ID_Num'] = np.arange(0, len(gdf))
     return gdf   
 
 
@@ -129,9 +135,9 @@ def remove_cnum(next_cell):
     """
     next_cellwocnum=[]
     for cell in next_cell:
-        row=cell[0]
-        col=cell[1]
-        next_cellwocnum.append((row,col))
+        row = cell[0]
+        col = cell[1]
+        next_cellwocnum.append((row, col))
     return next_cellwocnum
 
 
@@ -150,7 +156,7 @@ def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list,
     :return:
     """
     # Empty list to store the stream_cells that are returned
-    next_cell=[]
+    next_cell = []
     
     row = starting_point[0]  #Extract the raster row 
     col = starting_point[1]  #Extract the raster column
@@ -160,8 +166,9 @@ def MoveUpstream(df: pd.DataFrame, starting_point: tuple, nogo: list,
         cnum = starting_point[2]
 
     nogo = remove_cnum(nogo)
-
-    assert df[row][col] == 1, "The provided cell in MoveUpstream is not a stream cell"
+    
+    assertmsg = "The provided cell in MoveUpstream is not a stream cell"
+    assert df[row][col] == 1, assertmsg
         
     # For -1, 0, 1 in the vertical direction (move up and down rows)
     for i in range(-1,2):
@@ -188,17 +195,24 @@ def Remove_False_Confluence(save_confluence: list):
     :param save_confluence:
     :return:
     """
-    true_confluence=[] #Empty list to store the true confluences, i.e. those that are not just two stream cells next to eachother
-    confl_num=[] #List to store the extracted confluence numbers
-
-    for cell in save_confluence: #For each stream cell, add the confluence number to a list
+    # Empty list to store the true confluences, i.e. those that are not
+    # just two stream cells next to eachother
+    true_confluence = []
+    # List to store the extracted confluence numbers
+    confl_num = []
+    # For each stream cell, add the confluence number to a list
+    for cell in save_confluence:
         confl_num.append(cell[2])
-
-    for cell in save_confluence: #For each stream cell, if there are two or more stream cells with the same confluence number, i.e it is a confluence, add to the true_confluence list.
-        if confl_num.count(cell[2])>=2:
+    
+    # For each stream cell, if there are two or more stream cells with the
+    # same confluence number, i.e it is a confluence, add to the
+    # true_confluence list.
+    for cell in save_confluence:
+        if confl_num.count(cell[2]) >= 2:
             true_confluence.append(cell)
-        
-    false_confluence=list(set(save_confluence)-set(true_confluence)) #List of cells that were identified as confluences but do not have tributaries
+    # List of cells that were identified as confluences but do not have
+    # tributaries
+    false_confluence = list(set(save_confluence)-set(true_confluence))
     
     return true_confluence, false_confluence 
 
@@ -211,8 +225,8 @@ def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
     :param nogo:
     :return:
     """
-    false_cnum=[]
-    false_points=[]
+    false_cnum = []
+    false_points = []
 
     for cell in false_confluence:
         false_cnum.append(cell[2])
@@ -221,7 +235,7 @@ def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
         if cell[2] in false_cnum:
             false_points.append(cell)
         
-    false_points=list(set(false_points)-set(false_confluence))
+    false_points = list(set(false_points) - set(false_confluence))
     
     return false_points 
 
@@ -229,14 +243,14 @@ def ID_False_ConfluenceLocs(false_confluence: list, nogo: list):
 def Remove_False_From_Orig(false_confluence: list,
                            confluence_pairs_orig: list):
     """
-    Function to remove any original confluences that are associated with the
-    false confluences
+    Function to remove any original confluences that are associated with
+    the false confluences
     :param false_confluence:
     :param confluence_pairs_orig:
     :return:
     """
-    false_cnum=[]
-    confluence_pairs=[]
+    false_cnum = []
+    confluence_pairs = []
 
     for cell in false_confluence:
         false_cnum.append(cell[2])
@@ -256,10 +270,10 @@ def Exclude_Confls(tributary: list, disexl: float):
     :param disexl:
     :return:
     """
-    incl_tribs=[]
+    incl_tribs = []
 
     for cell in tributary:
-        if cell[3]>=disexl:
-            incl_tribs.append(cell) 
+        if cell[3] >= disexl:
+            incl_tribs.append(cell)
 
-    return incl_tribs                   
+    return incl_tribs
