@@ -1,18 +1,14 @@
 ##############################################################################
-list.of.packages <- c("leaflet.extras")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) remotes::install_github('bhaskarvk/leaflet.extras')
-lapply(list.of.packages, require, character.only = TRUE)
-
-list.of.packages <- c("curl","data.table","dataRetrieval","DBI","devtools","dplyr","DT",             
-                      "ggplot2","htmlwidgets","leafem","leafem","leaflet","leaflet.extras","maps",           
-                      "plotly","raster","raster","RColorBrewer","remotes","repr","sf",             
-                      "shiny","shinyalert","shinycssloaders","shinydashboard","shinyjs","shinythemes","skimr" ,         
-                      "spData","stringr","tmaptools","tryCatchLog")
-
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)) install.packages(new.packages)
-lapply(list.of.packages, require, character.only = TRUE)
+for (package in c("curl","data.table","dataRetrieval","DBI","devtools","dplyr","DT",             
+                  "ggplot2","htmlwidgets","leafem","leafem","leaflet","leaflet.extras","maps",           
+                  "plotly","raster","raster","RColorBrewer","remotes","repr","sf",             
+                  "shiny","shinyalert","shinycssloaders","shinydashboard","shinyjs","shinythemes","skimr" ,         
+                  "spData","stringr","tmaptools","tryCatchLog")) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
 ##############################################################################
 
 server <- function(input, output, session) {
