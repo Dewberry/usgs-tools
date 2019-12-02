@@ -7,11 +7,11 @@ import geojson
 import requests
 import numpy as np
 import pandas as pd
+import pathlib as pl
 import geopandas as gpd
+from geojson import dump
+from shapely.geometry import Point
 
-
-"""
-"""
 
 def SS_scrape(rcode, xlocation, ylocation, crs, status=True):
     """
