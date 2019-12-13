@@ -1,0 +1,361 @@
+---
+title: "Region II Events: Discharge + Precipitation"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Load libraries
+
+```{r setup, include=TRUE, eval=FALSE}
+rm(list=ls())
+library("dataRetrieval")
+library("jsonlite")
+require("knitr")
+library("rtide")
+library("tidyverse")
+library("rnoaa")
+dsn = "C:\\Users\\jmatney\\Documents\\R2_RII"
+```
+
+## Data preparation
+
+
+```{r data preparation, eval=FALSE}
+river_gauges <- fromJSON(paste0(dsn,"\\json\\riv_gauges_parsed.json"), flatten=TRUE)
+tidal_gauges <- fromJSON(paste0(dsn,"\\json\\tidal_gauges_parsed.json"), flatten=TRUE)
+events <- fromJSON(paste0(dsn,"\\data\\events.json"), flatten=TRUE)$ListEvents
+
+# This could be accomplished more efficiently 
+events$StartLST <- gsub("[^0-9.-]", "", events$StartLST)
+events$EndLST <- gsub("[^0-9.-]", "", events$EndLST)
+events$StartLST <- gsub("\\-","", events$StartLST)
+events$EndLST <- gsub("\\-","", events$EndLST)
+events$StartDate <- as.POSIXct(as.numeric(as.character(events$StartLST))/10000000, origin = "1970-01-01", tz = "GMT")
+events$EndDate <- as.POSIXct(as.numeric(as.character(events$EndLST))/10000000, origin = "1970-01-01", tz = "GMT")
+events <- events[, !(colnames(events) %in% c("StartLST","EndLST"))]
+
+rg_site_no <- river_gauges$features$properties.Gauge_No
+td_site_no <- tidal_gauges$features
+```
+
+## Riverine discharge calculation
+
+```{r discharge calculation, eval=FALSE}
+k = length(rg_site_no)
+n = nrow(events)
+
+x = matrix(data=NA, nrow=n, ncol=k)
+
+for (g in 1:k){ #length(rg_site_no)
+  for (e in 1:n){ #nrow(events)
+    siteNumber <- rg_site_no[g]
+    parameterCd <- "00060"  # Discharge
+    startDate <- events[e,]$StartDate
+    endDate <- events[e,]$EndDate
+    
+    dischargeUnit <- readNWISuv(siteNumber, parameterCd, startDate, endDate)
+    dischargeUnit <- renameNWISColumns(dischargeUnit)
+
+    #results <- readNWISdv(siteNumber, parameterCd, startDate, endDate, statCd=statCd)
+    x[e,g] <- max(dischargeUnit$Flow_Inst)
+  }
+}
+
+row.names(x) <- events[,"FullEventName"]
+colnames(x) <- rg_site_no
+```
+
+
+```{r write results, eval=FALSE}
+write.csv(x, "data_retrived.csv")
+```
+
+## Tidal discharge calculation 
+```{r, eval=FALSE}
+
+td_gauge_names <- td_site_no$properties.Gauge_Name
+td_gauge_names[8] <- "La Puntilla"
+t = length(td_gauge_names)
+n = nrow(events)
+
+y = matrix(data=NA, nrow=n, ncol=t)
+
+for (g in 1:t){ #length(td_gauge_names)
+  for (e in 1:n){ #nrow(events)
+    siteName <- td_gauge_names[g]
+    parameterCd <- "00060"  # Discharge
+    startDate <- as.Date(events[e,]$StartDate)
+    endDate <- as.Date(events[e,]$EndDate)
+    statCd <- c("00003")  # Maximum
+    
+    results <- rtide::tide_height(
+  siteName, from = startDate, to = endDate, 
+  minutes = 10L, tz = "PST8PDT")
+
+    y[e,g] <- max(results$TideHeight)
+  }
+}
+
+row.names(y) <- events[,"FullEventName"]
+colnames(y) <- td_gauge_names
+```
+
+
+
+```{r write tidal results, eval=FALSE}
+write.csv(y, "data_retrived.csv")
+```
+
+
+#########################################
+## Cumulative precipitation calculation
+#########################################
+
+```{r precipitation calcualtion, eval=FALSE}
+options(noaakey="mmYnzbKqIGtnMxWABUUfznAHyhLKBRZO")
+options(stringsAsFactors = FALSE)
+
+library("splitstackshape")
+library("dataRetrieval")
+library("jsonlite")
+require("knitr")
+library("rtide")
+library("tidyverse")
+library("rnoaa")
+library("rwrfhydro")
+library("stringr")
+library("doParallel")
+dsn = "C:\\Users\\jmatney\\Documents\\R2_RII"
+setwd(dsn)
+
+river_gauges <- fromJSON(paste0(dsn,"\\json\\riv_gauges_parsed.json"), flatten=TRUE)
+tidal_gauges <- fromJSON(paste0(dsn,"\\json\\tidal_gauges_parsed.json"), flatten=TRUE)
+events <- fromJSON(paste0(dsn,"\\data\\events.json"), flatten=TRUE)$ListEvents
+
+events$StartLST <- gsub("[^0-9.-]", "", events$StartLST)
+events$EndLST <- gsub("[^0-9.-]", "", events$EndLST)
+events$StartLST <- gsub("\\-","", events$StartLST)
+events$EndLST <- gsub("\\-","", events$EndLST)
+events$StartDate <- as.POSIXct(as.numeric(as.character(events$StartLST))/10000000, origin = "1970-01-01", tz = "GMT")
+events$EndDate <- as.POSIXct(as.numeric(as.character(events$EndLST))/10000000, origin = "1970-01-01", tz = "GMT")
+events <- events[, !(colnames(events) %in% c("StartLST","EndLST"))]
+
+rg_site_no <- river_gauges$features$properties.Gauge_No
+td_site_no <- tidal_gauges$features
+
+
+#############################
+# # P a r a l l e l i z e # #
+#############################
+
+nodes <- detectCores()
+cl <- makeCluster(nodes)
+registerDoParallel(cl)
+
+###################################################
+                  ################
+#-----------------## New Jersey ##----------------#
+                  ################
+###################################################
+
+NJevents <- events[which(events$State == "NJ"),]
+
+sg <- SelectGhcnGauges(country="US", state="NJ", domain = FALSE)
+
+write.csv(sg,"NJ_sg.csv",row.names=FALSE)
+
+####################
+## Work in ArcGIS ##
+####################
+
+#-- Spatial join --#
+
+####################
+## Geo Processing ##
+####################
+
+NJ_Precip_Station <- read.csv("csv\\NJ\\NJ_Precip_Stations_Bar.csv", header=TRUE)
+
+
+NJevents <- events[which(events$State=="NJ"),]
+
+
+NJ_result = foreach (i=1:nrow(NJevents)) %dopar% {
+  library(rwrfhydro)
+  library(stringr)
+  startDate <- str_replace_all(NJevents$StartDate[i], "-","/")
+  endDate <- str_replace_all(NJevents$EndDate[i], "-","/")
+  element <- "PRCP"
+  
+  GetGhcn2(NJ_Precip_Station$siteIds, 
+           element, 
+           startDate, 
+           endDate)
+}
+
+
+NJ_event_precip_data <- matrix(data=NA, nrow=length(NJ_Precip_Station$siteIds), ncol=nrow(NJevents))
+
+rownames(NJ_event_precip_data) <- NJ_Precip_Station$siteIds
+colnames(NJ_event_precip_data) <- NJevents$FullEventName
+
+site_IDs <- NJ_Precip_Station$siteIds
+
+for(i in 1:nrow(NJevents)){
+  for(j in 1:length(site_IDs)){
+    
+    print(paste("processing event: ", NJevents[i,]$FullEventName, "and station id: ", NJ_result[[i]]$siteIds[j]))
+    
+    sum_event_station <- sum(NJ_result[[i]][which(NJ_result[[i]]$siteIds==site_IDs[j]),]$value)
+    NJ_event_precip_data[j,i] <- sum_event_station
+  }
+}
+
+
+NJ_FINAL <- cbind(NJ_Precip_Station, NJ_event_precip_data)
+head(NJ_FINAL)
+
+### Split at the bar delimiter
+
+NJ_Revised <- cSplit(NJ_FINAL, 'FILENAME', ' | ', 'long')
+write.csv(NJ_Revised, "NJ_Revised.csv")
+
+###################################################
+                  ##############
+#-----------------## New York ##------------------#
+                  ##############
+###################################################
+
+NYevents <- events[which(events$State == "NY"),]
+
+NY_sg <- SelectGhcnGauges(country="US", state="NY", domain = FALSE)
+
+write.csv(NY_sg,"csv//NY_sg.csv",row.names=FALSE)
+
+####################
+## Work in ArcGIS ##
+####################
+
+#-- Spatial join --#
+
+####################
+## Geo Processing ##
+####################
+
+NY_Precip_Station <- read.csv("csv\\NY\\NY_Precip_Stations.csv", header=TRUE)
+
+
+NYevents <- events[which(events$State=="NY"),]
+
+
+NY_result = foreach (i=1:nrow(NYevents)) %dopar% {
+  library(rwrfhydro)
+  library(stringr)
+  startDate <- str_replace_all(NYevents$StartDate[i], "-","/")
+  endDate <- str_replace_all(NYevents$EndDate[i], "-","/")
+  element <- "PRCP"
+  
+  GetGhcn2(NY_Precip_Station$siteIds, 
+           element, 
+           startDate, 
+           endDate)
+}
+
+
+NY_event_precip_data <- matrix(data=NA, nrow=length(NY_Precip_Station$siteIds), ncol=nrow(NYevents))
+
+rownames(NY_event_precip_data) <- NY_Precip_Station$siteIds
+colnames(NY_event_precip_data) <- NYevents$FullEventName
+
+site_IDs <- NY_Precip_Station$siteIds
+
+for(i in 1:nrow(NYevents)){
+  for(j in 1:length(site_IDs)){
+    
+    print(paste("processing event: ", NYevents[i,]$FullEventName, "and station id: ", NY_result[[i]]$siteIds[j]))
+    
+    sum_event_station <- sum(NY_result[[i]][which(NY_result[[i]]$siteIds==site_IDs[j]),]$value)
+    NY_event_precip_data[j,i] <- sum_event_station
+  }
+}
+
+head(NY_result)
+
+NY_FINAL <- cbind(NY_Precip_Station, NY_event_precip_data)
+head(NY_FINAL)
+
+NY_Revised <- cSplit(NY_FINAL, 'FILENAME', ' | ', 'long')
+write.csv(NY_Revised, "NY_Revised.csv")
+
+
+######################################################
+                  #################
+#-----------------## Puerto Rico ##------------------#
+                  #################
+######################################################
+
+PRevents <- events[which(events$State == "PR"),]
+PRevents
+
+PR_sg <- SelectGhcnGauges(country="RQ", state="PR", domain = FALSE)
+
+write.csv(PR_sg,"csv//PR//PR_sg.csv",row.names=FALSE)
+
+####################
+## Work in ArcGIS ##
+####################
+
+#-- Spatial join --#
+
+####################
+## Geo Processing ##
+####################
+
+PR_Precip_Station <- read.csv("csv\\PR\\PR_Precip_Stations.csv", header=TRUE)
+
+
+PRevents <- events[which(events$State=="PR"),]
+
+
+PR_result = foreach (i=1:nrow(PRevents)) %dopar% {
+  library(rwrfhydro)
+  library(stringr)
+  startDate <- str_replace_all(PRevents$StartDate[i], "-","/")
+  endDate <- str_replace_all(PRevents$EndDate[i], "-","/")
+  element <- "PRCP"
+  
+  GetGhcn2(PR_Precip_Station$siteIds, 
+           element, 
+           startDate, 
+           endDate)
+}
+
+
+PR_event_precip_data <- matrix(data=NA, nrow=length(PR_Precip_Station$siteIds), ncol=nrow(PRevents))
+
+rownames(PR_event_precip_data) <- PR_Precip_Station$siteIds
+colnames(PR_event_precip_data) <- PRevents$FullEventName
+
+site_IDs <- PR_Precip_Station$siteIds
+
+for(i in 1:nrow(PRevents)){
+  for(j in 1:length(site_IDs)){
+    
+    print(paste("processing event: ", PRevents[i,]$FullEventName, "and station id: ", PR_result[[i]]$siteIds[j]))
+    
+    sum_event_station <- sum(PR_result[[i]][which(PR_result[[i]]$siteIds==site_IDs[j]),]$value)
+    PR_event_precip_data[j,i] <- sum_event_station
+  }
+}
+
+head(PR_result)
+
+PR_FINAL <- cbind(PR_Precip_Station, PR_event_precip_data)
+head(PR_FINAL)
+
+PR_Revised <- cSplit(PR_FINAL, 'Gage_No', ' | ', 'long')
+write.csv(PR_Revised, "PR_Revised.csv")
+
+
+```
