@@ -17,7 +17,7 @@ R and Python scripts interact with the available USGS services.
 
 * `StreamStats`: Tools to automate the [USGS StreamStats tool](https://www.usgs.gov/mission-areas/water-resources/science/streamstats-streamflow-statistics-and-spatial-analysis-tools?qt-science_center_objects=0#qt-science_center_objects).
 
-* `USGS_Filter_App`: A web mapping application, called the [USGS Gages Annual Flow Peak Tool](https://github.com/Dewberry/usgs-tools/tree/master/R/USGS_filter_app), that generates a csv of peak streamflow data from NWIS sites located within a modifiable bounding box of a user-supplied NWIS gage. 
+* `USGS_Filter_App`: A web mapping application, called the [USGS Gages Annual Flow Peak Tool](https://github.com/Dewberry/usgs-tools/tree/master/R/USGS_filter_app), that generates a csv of peak streamflow data from NWIS sites located within a modifiable bounding box of a user-supplied NWIS gage.
 
 ### Notebooks:
 
@@ -31,6 +31,7 @@ R and Python scripts interact with the available USGS services.
 
 - [__StreamStats_ID_Points__](https://nbviewer.jupyter.org/github/Dewberry/usgs-tools/blob/ready-to-publish/Python/StreamStats/StreamStats_ID_Points.ipynb): Tool to identify confluence pair points for tributaries of a specific length, add points to the main stem of a stream network at a specific distance interval, and export a shapefile of the points.
 
+- [__R_Notebook_Discharge_and_Precipitation_Calculation__](https://github.com/Dewberry/usgs-tools/blob/r-markdown/R/Notebooks/Region2-Discharge-Precipitation.rmd): Calculates discharge for each FEMA Region II USGS Riverine and Tidal Gauge. Then calculates a cumulative precipitation amount for these USGS River Gauges across various 2000-2018 storm events affecting FEMA Region II (NY, NJ, PR).
 ---
 
 ## References:
