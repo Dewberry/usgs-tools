@@ -1,6 +1,6 @@
 # FEMA Region II - Precipitation Calculation
 
-This R Notebook calculates a cumulative precipitation amount for dozens of USGS River Gauges across various 2000-2018 storm events affecting FEMA Region II (NY, NJ, PR).
+This R Notebook accomplishes two goals - 1: calculate discharge for each USGS River and Tidal Guage. 2: Calculates a cumulative precipitation amount for dozens of USGS River Gauges across various 2000-2018 storm events affecting FEMA Region II (NY, NJ, PR). The description below is related to goal 2.
 
 For each storm event (i.e., NY Ernesto 2006), the R Notebook queries precipitation data from NOAA’s Global Historical Climatology Network API. As there are hundreds of NOAA precipitation gauges located throughout FEMA Region II, these need to be aggregated in order to be associated with a single USGS River Gauge. This was accomplished using ArcGIS via spatial proximity (the nearest within-catchment NOAA Precipitation Gauge was associated with a USGS River Gauge). This workflow is not accounted for in the R Notebook.
 
